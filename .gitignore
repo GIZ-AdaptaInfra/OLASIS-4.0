@@ -9,6 +9,7 @@ venv/
 env/
 
 # Environment variables
+.env
 .env.local
 .env.development
 .env.test

@@ -62,16 +62,23 @@ OLASIS-4.0/
    pip install -r requirements.txt
    ```
 
-4. **Configure a chave da API do Google**. A chave da API Gemini deve ser fornecida através da variável de ambiente `GOOGLE_API_KEY`. Você pode obter uma chave gratuita do [Google AI Studio](https://aistudio.google.com/) e exportá-la antes de executar a aplicação:
+4. **Configure a chave da API do Google**. A chave da API Gemini deve ser fornecida através da variável de ambiente `GOOGLE_API_KEY`. 
 
+   **⚠️ IMPORTANTE**: Nunca exponha sua chave de API no código fonte!
+
+   Você pode obter uma chave gratuita do [Google AI Studio](https://aistudio.google.com/) e configurá-la de uma dessas formas:
+
+   **Opção 1 - Arquivo .env (Recomendado para desenvolvimento):**
+   ```sh
+   # Copie o arquivo de exemplo
+   cp .env.example .env
+   # Edite .env e adicione sua chave real
+   GOOGLE_API_KEY=sua_chave_api_aqui
+   ```
+
+   **Opção 2 - Variável de ambiente (Para deploy):**
    ```sh
    export GOOGLE_API_KEY="sua_chave_api_aqui"
-   ```
-
-   Ou criar um arquivo `.env` na raiz do projeto:
-
-   ```
-   GOOGLE_API_KEY=sua_chave_api_aqui
    ```
 
 5. **Execute a aplicação** usando Flask. O servidor iniciará em `http://localhost:5000` por padrão.
@@ -89,9 +96,16 @@ OLASIS 4.0 usa um backend Flask e um frontend estático, o que torna o deploy fl
 1. **Acesse [railway.app](https://railway.app)** e faça login com sua conta GitHub
 2. **Clique em "New Project"** e selecione "Deploy from GitHub repo"
 3. **Conecte seu repositório** do OLASIS 4.0
-4. **Configure as variáveis de ambiente**:
-   - `GOOGLE_API_KEY`: sua chave da API do Google Gemini
+4. **Configure as variáveis de ambiente no Railway**:
+   - Vá em **"Variables"** no painel do projeto
+   - Adicione: `GOOGLE_API_KEY` = `sua_chave_da_api_do_google`
+   - **⚠️ IMPORTANTE**: Nunca exponha a chave no código!
 5. **O deploy será feito automaticamente** e você receberá uma URL pública
+
+### ⚠️ Configuração de Variáveis no Deploy
+
+Para **todos os serviços de deploy**, configure estas variáveis de ambiente:
+- `GOOGLE_API_KEY`: Sua chave da API do Google Gemini
 
 ### Outras Opções de Deploy
 
@@ -155,6 +169,19 @@ Você pode usar os filtros acima dos resultados para mostrar apenas artigos, ape
 ### APIs Públicas
 - **OpenAlex**: Não requer autenticação
 - **ORCID**: Usa a API pública, sem autenticação necessária
+
+## 🔒 Segurança
+
+### Proteção de Chaves de API
+- ✅ **Nunca** commit chaves de API no repositório
+- ✅ Use arquivo `.env` para desenvolvimento local
+- ✅ Configure variáveis de ambiente no serviço de deploy
+- ✅ O arquivo `.env` está no `.gitignore`
+- ✅ Use `.env.example` como template
+
+### Variáveis de Ambiente
+- `GOOGLE_API_KEY`: Chave da API do Google Gemini (obrigatória)
+- `SECRET_KEY`: Chave secreta do Flask (opcional)
 
 ## Solução de Problemas
 
