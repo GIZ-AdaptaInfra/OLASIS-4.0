@@ -61,6 +61,18 @@ def create_app() -> Flask:
         template_folder="templates",
         static_folder="static",
     )
+    
+    # Configuração para produção
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'olasis4-secret-key-change-in-production')
+    
+    # Melhor tratamento de erros
+    @app.errorhandler(404)
+    def not_found(error):
+        return render_template("index.html"), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({"error": "Internal server error"}), 500
 
     # Initialise the chatbot once at start‑up.  The API key will be read
     # from the environment variable GOOGLE_API_KEY.  If the key is not

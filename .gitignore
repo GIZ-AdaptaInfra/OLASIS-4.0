@@ -21,5 +21,11 @@ env/
 .DS_Store
 Thumbs.db
 
+# Railway
+.railway/
+
 # Logs
 *.log
+
+# Environment (incluindo .env para segurança)
+.env
