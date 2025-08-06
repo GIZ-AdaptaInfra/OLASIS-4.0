@@ -132,10 +132,12 @@ def create_app() -> Flask:
     return app
 
 
+# Criar a instância da aplicação para o gunicorn
+app = create_app()
+
+
 if __name__ == "__main__":
-    # When executed directly, create the application and run it.
-    # In production a WSGI server such as gunicorn or uwsgi should be
-    # used instead.
-    app = create_app()
+    # When executed directly, run the application using Flask's dev server.
+    # In production, gunicorn will use the 'app' instance created above.
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
