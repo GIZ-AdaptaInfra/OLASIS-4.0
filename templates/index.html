@@ -110,10 +110,28 @@
         /* --- Área de Busca --- */
         .search-area { display: flex; align-items: center; gap: 1rem; position: relative; width: 100%; max-width: 1050px; justify-content: center; }
         .search-wrapper { flex-grow: 1; max-width: 950px; }
-        .search-form { display: flex; width: 100%; position: relative; }
-        .search-bar { width: 100%; padding: 1.3rem 4.5rem 1.3rem 2.5rem; font-size: 1.2rem; font-family: var(--font-main); border: 1px solid #dfe1e5; border-radius: 50px; background-color: var(--color-background); box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: box-shadow 0.3s, border-color 0.3s; }
+        .search-form { display: flex; width: 100%; position: relative; gap: 0.5rem; }
+        .search-bar { flex-grow: 1; padding: 1.3rem 2.5rem; font-size: 1.2rem; font-family: var(--font-main); border: 1px solid #dfe1e5; border-radius: 50px; background-color: var(--color-background); box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: box-shadow 0.3s, border-color 0.3s; }
         .search-bar:focus { outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-color: #dfe1e5; }
-        .search-button { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .country-filter { 
+            padding: 1.3rem 1rem; 
+            font-size: 1rem; 
+            font-family: var(--font-main); 
+            border: 1px solid #dfe1e5; 
+            border-radius: 50px; 
+            background-color: var(--color-background); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            transition: box-shadow 0.3s, border-color 0.3s; 
+            min-width: 180px;
+            line-height: 1.2;
+        }
+        .country-filter option {
+            padding: 0.5rem;
+            line-height: 1.4;
+            font-size: 1rem;
+        }
+        .country-filter:focus { outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-color: #dfe1e5; }
+        .search-button { background: none; border: none; cursor: pointer; padding: 1.3rem; display: flex; align-items: center; justify-content: center; border-radius: 50px; }
         .search-button svg { stroke: var(--color-gray-dark); transition: stroke 0.2s; }
         .search-button:hover svg { stroke: var(--color-sis); }
 
@@ -135,7 +153,9 @@
         }
         #inline-chat-window.show { opacity: 1; visibility: visible; transform: translateX(-50%) scale(1); }
         .inline-chat-header { padding: 0.5rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-gray-medium); flex-shrink: 0; }
+        .inline-chat-header-left { display: flex; align-items: center; gap: 0.5rem; }
         .inline-chat-header h3 { font-size: 1rem; color: var(--color-sis); }
+        .olabot-icon-placeholder-inline { width: 24px; height: 24px; background-color: var(--color-sis); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .inline-chat-controls button { background: none; border: none; cursor: pointer; padding: 0.25rem; }
         .inline-chat-messages { flex-grow: 1; padding: 0.75rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;}
         .inline-chat-messages .chat-bubble { max-width: 80%; padding: 0.5rem 0.8rem; border-radius: 1rem; line-height: 1.4; word-wrap: break-word; font-size: 0.9rem;}
@@ -179,6 +199,35 @@
         .result-card .orcid { color: var(--color-gray-dark); font-size: 0.9rem; font-style: italic; }
         .result-card .contact-link { color: var(--color-ola); text-decoration: none; font-weight: bold; }
         .result-card footer { background: none; padding: 1rem 0 0; text-align: left; color: var(--color-gray-dark); font-size: 0.9rem;}
+        
+        /* --- Estilos para links dos artigos e especialistas --- */
+        .article-links, .specialist-links { 
+            display: flex; gap: 1rem; margin-top: 1rem; 
+            padding-top: 0.75rem; border-top: 1px solid var(--color-gray-medium);
+        }
+        .article-link, .doi-link, .profile-link { 
+            display: inline-flex; align-items: center; gap: 0.5rem; 
+            color: var(--color-ola); text-decoration: none; font-weight: 500; font-size: 0.9rem;
+            padding: 0.5rem 0.75rem; border-radius: 6px; 
+            background: rgba(0, 79, 165, 0.1); transition: all 0.2s;
+        }
+        .article-link:hover, .profile-link:hover { 
+            background: var(--color-ola); color: white; 
+            transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0, 79, 165, 0.3);
+        }
+        .doi-link { 
+            color: var(--color-sis); background: rgba(0, 114, 187, 0.1);
+        }
+        .doi-link:hover { 
+            background: var(--color-sis); color: white; 
+            transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0, 114, 187, 0.3);
+        }
+        .article-link svg, .doi-link svg, .profile-link svg { 
+            flex-shrink: 0; opacity: 0.8;
+        }
+        .article-link:hover svg, .doi-link:hover svg, .profile-link:hover svg { 
+            opacity: 1;
+        }
 
         /* --- Seções da Landing Page (Espaçamento Ajustado) --- */
         #landing-content { background-color: var(--color-gray-light); padding-top: 1px; }
@@ -318,6 +367,31 @@
             <div class="search-wrapper">
                 <form id="search-form" class="search-form">
                     <input type="search" id="search-input" data-key="search-placeholder" placeholder="Buscar artículos o especialistas..." class="search-bar" required>
+                    <select id="country-filter" class="country-filter" title="Filtrar por país (opcional)">
+                        <option value="">🌎 Todos los países</option>
+                        <option value="Argentina">🇦🇷 Argentina</option>
+                        <option value="Barbados">🇧🇧 Barbados</option>
+                        <option value="Bolivia">🇧🇴 Bolivia</option>
+                        <option value="Brasil">🇧🇷 Brasil</option>
+                        <option value="Chile">🇨🇱 Chile</option>
+                        <option value="Colombia">🇨🇴 Colombia</option>
+                        <option value="Costa Rica">🇨🇷 Costa Rica</option>
+                        <option value="Cuba">🇨🇺 Cuba</option>
+                        <option value="Ecuador">🇪🇨 Ecuador</option>
+                        <option value="El Salvador">🇸🇻 El Salvador</option>
+                        <option value="Guatemala">🇬🇹 Guatemala</option>
+                        <option value="Haiti">🇭🇹 Haití</option>
+                        <option value="Honduras">🇭🇳 Honduras</option>
+                        <option value="Jamaica">🇯🇲 Jamaica</option>
+                        <option value="Mexico">🇲🇽 México</option>
+                        <option value="Nicaragua">🇳🇮 Nicaragua</option>
+                        <option value="Panama">🇵🇦 Panamá</option>
+                        <option value="Paraguay">🇵🇾 Paraguay</option>
+                        <option value="Peru">🇵🇪 Perú</option>
+                        <option value="Dominican Republic">🇩🇴 República Dominicana</option>
+                        <option value="Uruguay">🇺🇾 Uruguay</option>
+                        <option value="Venezuela">🇻🇪 Venezuela</option>
+                    </select>
                     <button type="submit" class="search-button" title="Buscar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
@@ -332,7 +406,12 @@
                 <div class="tooltip" data-key="tooltip">¿Cómo puedo ayudarte hoy?</div>
                 <div id="inline-chat-window">
                     <div class="inline-chat-header">
-                        <h3>OLABOT</h3>
+                        <div class="inline-chat-header-left">
+                            <div class="olabot-icon-placeholder-inline">
+                                <img src="https://i.ibb.co/20Jycz8Q/Olacita.png" alt="Ícone OLABOT">
+                            </div>
+                            <h3>OLABOT</h3>
+                        </div>
                         <div class="inline-chat-controls"><button id="close-chat-btn" title="Cerrar chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
                     </div>
                     <div class="inline-chat-messages"></div>
@@ -341,8 +420,8 @@
             </div>
         </div>
         <div class="info-boxes">
-            <div class="info-box" id="articles-counter">+ de 250M artículos</div>
-            <div class="info-box" id="specialists-counter">+ 5.000 especialistas</div>
+            <div class="info-box" id="articles-counter">+ de 250 milhões de artigos</div>
+            <div class="info-box" id="specialists-counter">+ de 100 mil especialistas</div>
         </div>
     </main>
     
@@ -662,16 +741,16 @@
 
             const articlesCounterEl = document.getElementById('articles-counter');
             const specialistsCounterEl = document.getElementById('specialists-counter');
-            let articlesCount = 3000;
-            let specialistsCount = 5000;
-            function formatNumber(num) { return new Intl.NumberFormat('es-ES').format(num); }
+            let articlesCount = 250000000; // 250 milhões
+            let specialistsCount = 100000;  // 100 mil
+            function formatNumber(num) { return new Intl.NumberFormat('pt-BR').format(num); }
             function updateCountersText() {
-                articlesCounterEl.textContent = `+ de ${formatNumber(articlesCount)} artículos`;
-                specialistsCounterEl.textContent = `+ ${formatNumber(specialistsCount)} especialistas`;
+                articlesCounterEl.textContent = `+ de ${formatNumber(articlesCount)} artigos`;
+                specialistsCounterEl.textContent = `+ de ${formatNumber(specialistsCount)} especialistas`;
             }
             setInterval(() => {
-                articlesCount += Math.floor(Math.random() * 5) + 1;
-                specialistsCount += Math.floor(Math.random() * 3) + 1;
+                articlesCount += Math.floor(Math.random() * 50) + 10; // Incremento maior para artigos
+                specialistsCount += Math.floor(Math.random() * 5) + 1;  // Incremento menor para especialistas
                 updateCountersText();
             }, 2500);
 

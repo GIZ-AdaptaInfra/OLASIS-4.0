@@ -6,27 +6,6 @@
 // transitions and translations; we simply hook into DOM events to
 // replace the dummy behaviour with live data.
 
-// Função para converter Markdown básico para HTML
-function markdownToHtml(text) {
-  return text
-    // Negrito (**texto** ou __texto__)
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/__(.*?)__/g, '<strong>$1</strong>')
-    // Itálico (*texto* ou _texto_)
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/_(.*?)_/g, '<em>$1</em>')
-    // Links [texto](url)
-    .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-    // Quebras de linha duplas para parágrafos
-    .replace(/\n\n/g, '</p><p>')
-    // Quebras de linha simples para <br>
-    .replace(/\n/g, '<br>')
-    // Envolver tudo em parágrafos
-    .replace(/^(.+)$/s, '<p>$1</p>')
-    // Remover parágrafos vazios
-    .replace(/<p><\/p>/g, '');
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   // ----- Search integration -----
   const searchForm = document.getElementById('search-form');
@@ -51,10 +30,31 @@ document.addEventListener('DOMContentLoaded', () => {
           data.articles.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'result-card';
-            const authors = item.authors && item.authors.length ? `<p>${item.authors.join(', ')}</p>` : '';
-            const year = item.year ? `<p>Año: ${item.year}</p>` : '';
-            const doi = item.doi ? `<footer>DOI: <a href="https://doi.org/${item.doi.replace(/^(https?:\/\/)?doi\.org\//i, '')}" target="_blank">${item.doi}</a></footer>` : '<footer></footer>';
-            card.innerHTML = `<h3>${item.title || 'Sin título'}</h3>${authors}${year}${doi}`;
+            const authors = item.authors && item.authors.length ? `<p><strong>Autores:</strong> ${item.authors.join(', ')}</p>` : '';
+            const year = item.year ? `<p><strong>Ano:</strong> ${item.year}</p>` : '';
+            
+            // Create links section with icons
+            let linksHtml = '<div class="article-links">';
+            if (item.url) {
+              linksHtml += `<a href="${item.url}" target="_blank" class="article-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+                </svg>
+                Ver Artigo
+              </a>`;
+            }
+            if (item.doi) {
+              const doiUrl = item.doi.startsWith('https://') ? item.doi : `https://doi.org/${item.doi.replace(/^(https?:\/\/)?doi\.org\//i, '')}`;
+              linksHtml += `<a href="${doiUrl}" target="_blank" class="doi-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                </svg>
+                DOI
+              </a>`;
+            }
+            linksHtml += '</div>';
+            
+            card.innerHTML = `<h3>${item.title || 'Sin título'}</h3>${authors}${year}${linksHtml}`;
             articlesGrid.appendChild(card);
           });
         }
@@ -63,9 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
           data.specialists.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'result-card';
-            const fullName = item.full_name || [item.given_names, item.family_names].filter(Boolean).join(' ').trim() || 'Sin nombre';
-            const orcid = item.orcid ? `<p class="orcid">ORCID: ${item.orcid}</p>` : '';
-            const profileLink = item.profile_url ? `<a href="${item.profile_url}" class="contact-link" target="_blank">Perfil</a>` : '';
+            const fullName = item.full_name || [item.given_names, item.family_names].filter(Boolean).join(' ').trim() || 'Nome não disponível';
+            const orcid = item.orcid ? `<p class="orcid"><strong>ORCID:</strong> ${item.orcid}</p>` : '';
+            
+            let profileLink = '';
+            if (item.profile_url) {
+              profileLink = `<div class="specialist-links">
+                <a href="${item.profile_url}" target="_blank" class="profile-link">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+                  </svg>
+                  Ver Perfil ORCID
+                </a>
+              </div>`;
+            }
+            
             card.innerHTML = `<h3>${fullName}</h3>${orcid}${profileLink}`;
             specialistsGrid.appendChild(card);
           });
@@ -109,13 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const reply = data.response || data.message || 'Lo siento, ocurrió un error.';
         const botBubble = document.createElement('div');
         botBubble.className = 'chat-bubble bot';
-        botBubble.innerHTML = markdownToHtml(reply);
+        botBubble.textContent = reply;
         inlineChatMessages.appendChild(botBubble);
         inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
       } catch (err) {
         const errBubble = document.createElement('div');
         errBubble.className = 'chat-bubble bot';
-        errBubble.innerHTML = '<p>Lo siento, ocurrió un error.</p>';
+        errBubble.textContent = 'Lo siento, ocurrió un error.';
         inlineChatMessages.appendChild(errBubble);
         inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
       }

@@ -1,7 +1,41 @@
 """Flask application for OLASIS 4.0.
 
-This module defines a small web server that powers the OLASIS 4.0
-interface.  It exposes three routes:
+This module defines a small web server that powers the    @app.route("/api        """Perform a combined search across OpenAlex and ORCID.
+
+        Expects a ``q`` query parameter containing the user's search
+        string and optionally a ``country`` parameter for filtering specialists.
+        Returns a JSON object with two lists: ``articles`` and
+        ``specialists``.  Each article is represented as a dictionary
+        containing the keys ``title``, ``authors``, ``year``, ``openalex_id``
+        and ``doi``.  Each specialist contains ``orcid``, ``given_names``,
+        ``family_names``, ``full_name`` and ``profile_url``.
+        """
+        query: str = request.args.get("q", "").strip()
+        country: str = request.args.get("country", "").strip()
+        if not query:
+            return {"error": "No search query provided."}, 400
+        # Return up to 50 results for better user experience
+        articles = search_articles(query, per_page=50)
+        specialists = search_specialists(query, rows=50, country=country)
+        return {"articles": articles, "specialists": specialists}, 200f api_search() -> tuple[dict[str, object], int] | tuple[dict[str, str], int]:
+        """Perform a combined search across OpenAlex and ORCID.
+
+        Expects a ``q`` query parameter containing the user's search
+        string and optionally a ``country`` parameter for filtering specialists.
+        Returns a JSON object with two lists: ``articles`` and
+        ``specialists``.  Each article is represented as a dictionary
+        containing the keys ``title``, ``authors``, ``year``, ``openalex_id``
+        and ``doi``.  Each specialist contains ``orcid``, ``given_names``,
+        ``family_names``, ``full_name`` and ``profile_url``.
+        """
+        query: str = request.args.get("q", "").strip()
+        country: str = request.args.get("country", "").strip()
+        if not query:
+            return {"error": "No search query provided."}, 400
+        # Return up to 50 results for better user experience
+        articles = search_articles(query, per_page=50)
+        specialists = search_specialists(query, rows=50, country=country)
+        return {"articles": articles, "specialists": specialists}, 200ace.  It exposes three routes:
 
 * ``/`` – serves the main HTML page.  The front‑end layout and styling
   are defined in ``templates/index.html`` and must not be changed
@@ -104,10 +138,9 @@ def create_app() -> Flask:
         query: str = request.args.get("q", "").strip()
         if not query:
             return {"error": "No search query provided."}, 400
-        # Limit the number of results to a reasonable default.  The
-        # underlying modules cap values internally as well.
-        articles = search_articles(query, per_page=5)
-        specialists = search_specialists(query, rows=5)
+        # Return up to 50 results for better user experience
+        articles = search_articles(query, per_page=50)
+        specialists = search_specialists(query, rows=50)
         return {"articles": articles, "specialists": specialists}, 200
 
     @app.route("/api/chat", methods=["POST"])
@@ -132,12 +165,10 @@ def create_app() -> Flask:
     return app
 
 
-# Criar a instância da aplicação para o gunicorn
-app = create_app()
-
-
 if __name__ == "__main__":
-    # When executed directly, run the application using Flask's dev server.
-    # In production, gunicorn will use the 'app' instance created above.
+    # When executed directly, create the application and run it.
+    # In production a WSGI server such as gunicorn or uwsgi should be
+    # used instead.
+    app = create_app()
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

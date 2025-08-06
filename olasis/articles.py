@@ -24,7 +24,7 @@ from .utils import http_get, extract_authors
 OPENALEX_BASE_URL = 'https://api.openalex.org/works'
 
 
-def search_articles(query: str, *, per_page: int = 5, mailto: Optional[str] = None) -> List[Dict[str, Any]]:
+def search_articles(query: str, *, per_page: int = 50, mailto: Optional[str] = None) -> List[Dict[str, Any]]:
     """Search OpenAlex for works matching a query.
 
     Parameters
@@ -34,7 +34,7 @@ def search_articles(query: str, *, per_page: int = 5, mailto: Optional[str] = No
         whitespace and punctuation are treated as separators.  See the OpenAlex
         documentation for advanced usage.
     per_page: int
-        Number of records to return (minimum 1, maximum 200).  Defaults to 5.
+        Number of records to return (minimum 1, maximum 200).  Defaults to 50.
     mailto: str | None
         Optional contact email to include in the request.  Adding a mailto
         parameter is recommended when making large numbers of requests so that
@@ -46,7 +46,7 @@ def search_articles(query: str, *, per_page: int = 5, mailto: Optional[str] = No
     -------
     list of dict
         A list of articles with the keys ``title``, ``authors``, ``year``,
-        ``openalex_id`` and ``doi``.  If the request fails, an empty list
+        ``openalex_id``, ``doi`` and ``url``.  If the request fails, an empty list
         will be returned.
     """
     per_page = max(1, min(per_page, 200))
@@ -72,11 +72,44 @@ def search_articles(query: str, *, per_page: int = 5, mailto: Optional[str] = No
         publication_year = result.get('publication_year') or result.get('from_year')
         openalex_id = result.get('id')
         doi = result.get('doi')
+        
+        # Extract article URL with multiple fallbacks
+        article_url = None
+        
+        # Try primary location first
+        primary_location = result.get('primary_location')
+        if primary_location:
+            article_url = primary_location.get('landing_page_url')
+        
+        # If no primary location URL, try best open access location
+        if not article_url:
+            best_oa_location = result.get('best_oa_location')
+            if best_oa_location:
+                article_url = best_oa_location.get('landing_page_url')
+        
+        # If still no URL, try other locations
+        if not article_url:
+            locations = result.get('locations', [])
+            for location in locations:
+                if location.get('landing_page_url'):
+                    article_url = location['landing_page_url']
+                    break
+        
+        # Final fallback: construct DOI URL if DOI exists
+        if not article_url and doi:
+            if doi.startswith('https://doi.org/'):
+                article_url = doi
+            else:
+                # Remove any existing doi.org prefix to avoid duplication
+                clean_doi = doi.replace('https://doi.org/', '').replace('doi.org/', '').replace('doi:', '')
+                article_url = f"https://doi.org/{clean_doi}"
+            
         articles.append({
             'title': title,
             'authors': authors,
             'year': publication_year,
             'openalex_id': openalex_id,
             'doi': doi,
+            'url': article_url,
         })
     return articles
