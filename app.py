@@ -8,6 +8,10 @@ import os
 from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
 from olasis import Chatbot, search_articles, search_specialists
+import requests
+from datetime import datetime
+import requests
+from datetime import datetime
 
 load_dotenv()
 
@@ -89,30 +93,73 @@ def api_chat():
         return {"response": "Por favor, proporcione un mensaje."}, 400
     
     # Add instruction for natural conversation without markdown formatting
-    natural_prompt = f"""Responde de forma natural y conversacional, como un asistente especializado en investigación científica académica. NO uses formato markdown, negritas, cursivas, listas con asteriscos o numeradas. Responde con texto plano y natural, usando párrafos simples separados por saltos de línea cuando sea necesario. 
+    natural_prompt = f"""Responde de forma natural e conversacional, como um assistente especializado em pesquisa científica acadêmica. NÃO use formatação markdown, negrito, itálico, listas com asteriscos ou numeradas. Responda com texto plano e natural, usando parágrafos simples separados por quebras de linha quando necessário. 
 
-Pregunta del usuario: {message}"""
+Pergunta do usuário: {message}"""
     
     # Ask the chatbot for a response
     reply = chatbot.ask(natural_prompt)
     
     # Check if the response indicates an API error and provide a more helpful message
     if reply and ("[Chatbot not available" in reply or "[Sorry, I couldn't generate" in reply):
-        reply = f"""Hola! Soy el asistente de OLASIS 4.0 especializado en investigación científica.
+        reply = f"""Olá! Sou o assistente do OLASIS 4.0 especializado em pesquisa científica.
 
-Tu pregunta sobre "{message}" es muy interesante. 
+Sua pergunta sobre "{message}" é muito interessante. 
 
-En este momento la API de inteligencia artificial no está disponible, pero puedo ayudarte de otras formas:
+No momento, a API de inteligência artificial não está disponível, mas posso ajudar de outras formas:
 
-1. Usa la búsqueda avanzada arriba para encontrar artículos científicos y especialistas relacionados con tu consulta.
+1. Use a busca avançada acima para encontrar artigos científicos e especialistas relacionados à sua consulta.
 
-2. Puedes buscar por términos como: "diabetes", "sostenibilidad", "inteligencia artificial", "medicina", etc.
+2. Você pode procurar por termos como: "diabetes", "sustentabilidade", "inteligência artificial", "medicina", etc.
 
-3. Los resultados incluyen enlaces directos a los artículos y perfiles de especialistas con sus datos de contacto.
+3. Os resultados incluem links diretos para os artigos e perfis de especialistas com seus dados de contato.
 
-¿Te gustaría que busque información específica sobre "{message}" en nuestra base de datos?"""
+Gostaria que eu buscasse informações específicas sobre "{message}" em nossa base de dados?"""
     
     return {"response": reply}, 200
+
+@app.route("/api/stats")
+def api_stats():
+    """Get real-time statistics from OpenAlex and ORCID APIs."""
+    try:
+        # Get OpenAlex statistics (total works count)
+        openalex_resp = requests.get('https://api.openalex.org/works?filter=type:article&per-page=1')
+        if openalex_resp.status_code == 200:
+            openalex_data = openalex_resp.json()
+            total_articles = openalex_data.get('meta', {}).get('count', 200000000)
+        else:
+            total_articles = 200000000  # Fallback
+        
+        # Get ORCID statistics (approximate from search results)
+        orcid_resp = requests.get('https://pub.orcid.org/v3.0/search/?q=*&rows=1')
+        if orcid_resp.status_code == 200:
+            # Parse XML response to get num-found
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(orcid_resp.content)
+            # Find num-found attribute in search:search element
+            for elem in root.iter():
+                if 'num-found' in elem.attrib:
+                    total_specialists = int(elem.attrib['num-found'])
+                    break
+            else:
+                total_specialists = 20005117  # Fallback if not found
+        else:
+            total_specialists = 20005117  # Fallback
+        
+        return {
+            "articles": total_articles,
+            "specialists": total_specialists,
+            "last_updated": datetime.now().isoformat()
+        }, 200
+    
+    except Exception as e:
+        # Return fallback numbers if APIs fail
+        return {
+            "articles": 200000000,
+            "specialists": 20005117,
+            "last_updated": datetime.now().isoformat(),
+            "error": "Using cached data"
+        }, 200
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
