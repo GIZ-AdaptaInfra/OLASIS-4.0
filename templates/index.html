@@ -563,6 +563,7 @@
                     'tutorial-title': '¡Guía Rápida para el Éxito!',
                     'tutorial-desc': 'Mira nuestro video tutorial para aprender a navegar, buscar y aprovechar al máximo todas las funcionalidades del OLASIS.',
                     'tutorial-btn': 'Ver Tutorial',
+                    'olabot-inline-message': '¡Hola! Soy OLABOT, tu asistente especializado en investigación científica. Para una experiencia completa de chat, haz clic en "OLABOT" en la esquina superior izquierda de la página. Allí podrás conversar conmigo sin límites y obtener respuestas más detalladas sobre cualquier tema académico.',
                 },
                 en: {
                     'olabot': 'OLABOT',
@@ -588,6 +589,7 @@
                     'tutorial-title': 'Quick Guide to Success!',
                     'tutorial-desc': 'Watch our video tutorial to learn how to navigate, search, and make the most of all OLASIS features.',
                     'tutorial-btn': 'Watch Tutorial',
+                    'olabot-inline-message': 'Hello! I am OLABOT, your assistant specialized in scientific research. For a complete chat experience, click on "OLABOT" in the top left corner of the page. There you can chat with me without limits and get more detailed answers on any academic topic.',
                 },
                 pt: {
                     'olabot': 'OLABOT',
@@ -613,12 +615,14 @@
                     'tutorial-title': 'Guia Rápido para o Sucesso!',
                     'tutorial-desc': 'Assista ao nosso vídeo tutorial para aprender a navegar, pesquisar e aproveitar ao máximo todas as funcionalidades do OLASIS.',
                     'tutorial-btn': 'Ver Tutorial',
+                    'olabot-inline-message': 'Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica. Para uma experiência completa de chat, clique em "OLABOT" no canto superior esquerdo da página. Lá você poderá conversar comigo sem limites e obter respostas mais detalhadas sobre qualquer tópico acadêmico.',
                 }
             };
 
             const langButtons = document.querySelectorAll('.language-switcher .lang-btn');
             const searchInput = document.getElementById('search-input');
             const elementsToTranslate = document.querySelectorAll('[data-key]');
+            let currentLanguage = 'es'; // Default language
             
             function setLanguage(lang) {
                 if (!translations[lang]) return;
@@ -644,6 +648,7 @@
                 });
                 
                 localStorage.setItem('language', lang);
+                currentLanguage = lang; // Store current language
             }
 
             langButtons.forEach(button => {
