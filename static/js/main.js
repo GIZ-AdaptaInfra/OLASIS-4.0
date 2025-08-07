@@ -247,7 +247,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const reply = data.response || data.message || 'Lo siento, ocurrió un error.';
         const botBubble = document.createElement('div');
         botBubble.className = 'chat-bubble bot';
-        botBubble.innerHTML = markdownToHtml(reply);
+        
+        // Convert markdown-like formatting to plain text for natural conversation
+        const plainText = reply
+          .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold formatting
+          .replace(/\*(.*?)\*/g, '$1')      // Remove italic formatting  
+          .replace(/__(.*?)__/g, '$1')      // Remove bold formatting
+          .replace(/_(.*?)_/g, '$1')        // Remove italic formatting
+          .replace(/###\s*/g, '')           // Remove heading markers
+          .replace(/##\s*/g, '')            // Remove heading markers
+          .replace(/#\s*/g, '')             // Remove heading markers
+          .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')  // Extract link text only
+          .replace(/\n\s*\*\s*/g, '\n• ')   // Convert markdown lists to simple bullets
+          .replace(/\n\s*\d+\.\s*/g, '\n')  // Remove numbered list formatting
+          .replace(/\n{3,}/g, '\n\n');      // Normalize multiple line breaks
+        
+        botBubble.textContent = plainText;
         inlineChatMessages.appendChild(botBubble);
         inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
       } catch (err) {

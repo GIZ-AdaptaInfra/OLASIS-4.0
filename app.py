@@ -87,8 +87,31 @@ def api_chat():
     message = (data.get("message") or "").strip()
     if not message:
         return {"response": "Por favor, proporcione un mensaje."}, 400
+    
+    # Add instruction for natural conversation without markdown formatting
+    natural_prompt = f"""Responde de forma natural y conversacional, como un asistente especializado en investigación científica académica. NO uses formato markdown, negritas, cursivas, listas con asteriscos o numeradas. Responde con texto plano y natural, usando párrafos simples separados por saltos de línea cuando sea necesario. 
+
+Pregunta del usuario: {message}"""
+    
     # Ask the chatbot for a response
-    reply = chatbot.ask(message)
+    reply = chatbot.ask(natural_prompt)
+    
+    # Check if the response indicates an API error and provide a more helpful message
+    if reply and ("[Chatbot not available" in reply or "[Sorry, I couldn't generate" in reply):
+        reply = f"""Hola! Soy el asistente de OLASIS 4.0 especializado en investigación científica.
+
+Tu pregunta sobre "{message}" es muy interesante. 
+
+En este momento la API de inteligencia artificial no está disponible, pero puedo ayudarte de otras formas:
+
+1. Usa la búsqueda avanzada arriba para encontrar artículos científicos y especialistas relacionados con tu consulta.
+
+2. Puedes buscar por términos como: "diabetes", "sostenibilidad", "inteligencia artificial", "medicina", etc.
+
+3. Los resultados incluyen enlaces directos a los artículos y perfiles de especialistas con sus datos de contacto.
+
+¿Te gustaría que busque información específica sobre "{message}" en nuestra base de datos?"""
+    
     return {"response": reply}, 200
 
 if __name__ == "__main__":
