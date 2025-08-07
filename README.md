@@ -1,4 +1,5 @@
 # OLASIS 4.0
+<img width="2436" height="1044" alt="Captura de tela de 2025-08-07 11-13-41" src="https://github.com/user-attachments/assets/35cff5c4-a9be-4f75-ad77-54b476c349ce" />
 
 ## Visão Geral
 
