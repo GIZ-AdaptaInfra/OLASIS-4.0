@@ -1,28 +1,48 @@
-"""Chatbot integration with Google Gemini (Generative AI).
+"""
+OLABOT - Chatbot Inteligente para Pesquisa Científica
+====================================================
 
-This module defines a lightweight wrapper around the official Google GenAI
-Python client.  It hides initialisation details and provides a simple
-``ask`` method that can be called from the Streamlit UI.  To use this
-module you must export the ``GOOGLE_API_KEY`` environment variable with
-your Gemini API key or pass it directly when constructing the `Chatbot`
-instance.
+Sistema de chatbot avançado integrado ao OLASIS 4.0, especializado em pesquisa
+científica e acadêmica. Utiliza engenharia de prompt profissional e integração
+com Google Gemini para fornecer assistência contextualizada e de alta qualidade.
 
-References
-----------
-The Gemini API quick start shows how to install the SDK and make your first
-request using Python【549275489770013†L332-L347】.  This module follows the same
-pattern.
+Características principais:
+- Prompts contextualizados por tipo de consulta
+- Respostas otimizadas para pesquisa acadêmica  
+- Integração automática com ferramentas do OLASIS
+- Filtros de qualidade e segurança
+- Histórico de conversa inteligente
+
+Referencias:
+- Google Gemini API: https://ai.google.dev/
+- Prompt Engineering Best Practices: https://platform.openai.com/docs/guides/prompt-engineering
 """
 from __future__ import annotations
 
 import os
 import logging
-from typing import List
+import time
+from typing import List, Dict, Optional
 
 try:
     from google import genai  # type: ignore
 except Exception:
     genai = None  # fall back if google-genai is not installed
+
+# Importar classes de engenharia de prompt
+try:
+    from .prompt_engineering import (
+        PromptBuilder, 
+        ResponseOptimizer, 
+        BEST_PRACTICES_CONFIG,
+        CONTENT_FILTERS
+    )
+except ImportError:
+    # Fallback para quando o módulo não estiver disponível
+    PromptBuilder = None
+    ResponseOptimizer = None
+    BEST_PRACTICES_CONFIG = {}
+    CONTENT_FILTERS = {}
 
 logger = logging.getLogger(__name__)
 

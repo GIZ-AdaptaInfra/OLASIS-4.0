@@ -7,9 +7,7 @@ interface with pagination support.
 import os
 from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
-from olasis import Chatbot, search_articles, search_specialists
-import requests
-from datetime import datetime
+from olasis import OlaBot, search_articles, search_specialists
 import requests
 from datetime import datetime
 
@@ -18,8 +16,13 @@ load_dotenv()
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'olasis4-secret-key-change-in-production')
 
-# Inicializar chatbot
-chatbot = Chatbot(api_key=os.getenv("GOOGLE_API_KEY"), model="gemini-2.5-flash")
+# Inicializar OLABOT v2 com engenharia de prompt
+olabot = OlaBot(
+    api_key=os.getenv("GOOGLE_API_KEY"), 
+    model="gemini-2.5-flash",
+    temperature=0.7,
+    enable_prompt_engineering=True
+)
 
 # Tratamento de erros
 @app.errorhandler(404)
@@ -86,37 +89,67 @@ def api_search():
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
-    """Generate a chatbot response to the user's message."""
+    """Generate a chatbot response using OLABOT v2 with prompt engineering."""
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
     if not message:
-        return {"response": "Por favor, proporcione un mensaje."}, 400
+        return {"response": "Por favor, faça uma pergunta específica sobre pesquisa científica."}, 400
     
-    # Add instruction for natural conversation without markdown formatting
-    natural_prompt = f"""Responde de forma natural e conversacional, como um assistente especializado em pesquisa científica acadêmica. NÃO use formatação markdown, negrito, itálico, listas com asteriscos ou numeradas. Responda com texto plano e natural, usando parágrafos simples separados por quebras de linha quando necessário. 
-
-Pergunta do usuário: {message}"""
+    # Use OLABOT v2 with automatic context detection
+    reply = olabot.ask(message, context_type="auto")
     
-    # Ask the chatbot for a response
-    reply = chatbot.ask(natural_prompt)
+    # Get session statistics for monitoring
+    stats = olabot.get_session_stats()
     
-    # Check if the response indicates an API error and provide a more helpful message
-    if reply and ("[Chatbot not available" in reply or "[Sorry, I couldn't generate" in reply):
-        reply = f"""Olá! Sou o assistente do OLASIS 4.0 especializado em pesquisa científica.
+    return {
+        "response": reply,
+        "meta": {
+            "context_detected": True,
+            "session_stats": stats,
+            "model_info": olabot.model_info
+        }
+    }, 200
 
-Sua pergunta sobre "{message}" é muito interessante. 
-
-No momento, a API de inteligência artificial não está disponível, mas posso ajudar de outras formas:
-
-1. Use a busca avançada acima para encontrar artigos científicos e especialistas relacionados à sua consulta.
-
-2. Você pode procurar por termos como: "diabetes", "sustentabilidade", "inteligência artificial", "medicina", etc.
-
-3. Os resultados incluem links diretos para os artigos e perfis de especialistas com seus dados de contato.
-
-Gostaria que eu buscasse informações específicas sobre "{message}" em nossa base de dados?"""
-    
-    return {"response": reply}, 200
+@app.route("/api/chat/suggestions", methods=["GET"])
+def api_chat_suggestions():
+    """Get contextual chat suggestions for OLABOT."""
+    try:
+        from olasis.prompt_engineering import ChatSuggestions
+        
+        # Get parameters
+        context_type = request.args.get('context', 'general')
+        limit = int(request.args.get('count', request.args.get('limit', 4)))
+        field = request.args.get('field', None)
+        
+        # Get user history if available (from session or parameter)
+        user_history = request.args.getlist('history') if request.args.getlist('history') else None
+        
+        # Generate suggestions based on context
+        if field:
+            suggestions = ChatSuggestions.get_suggestions_by_field(field, limit)
+        elif user_history:
+            suggestions = ChatSuggestions.get_adaptive_suggestions(user_history, limit)
+        else:
+            suggestions = ChatSuggestions.get_contextual_suggestions(context_type, limit)
+        
+        return {
+            "suggestions": suggestions,
+            "context": context_type,
+            "field": field,
+            "count": len(suggestions)
+        }, 200
+        
+    except Exception as e:
+        return {
+            "suggestions": [
+                "O que é inteligência artificial?",
+                "Como fazer uma pesquisa científica?",
+                "Onde encontrar artigos acadêmicos?",
+                "Como avaliar fontes científicas?"
+            ],
+            "context": "fallback",
+            "error": str(e)
+        }, 200
 
 @app.route("/api/stats")
 def api_stats():
