@@ -285,68 +285,80 @@ class ChatSuggestions:
     # Sugestões categorizadas por tipo de usuário/contexto
     SUGGESTIONS_BY_CONTEXT = {
         "beginner": [
-            "O que é uma revisão sistemática?",
-            "Como começar uma pesquisa científica?",
-            "Quais são as principais bases de dados acadêmicas?",
-            "Como avaliar a qualidade de um artigo científico?"
+            "O que é infraestrutura verde urbana?",
+            "Como começar uma pesquisa em sustentabilidade?",
+            "Quais são os pilares da construção sustentável?",
+            "Como avaliar o impacto ambiental de projetos?"
         ],
         "intermediate": [
-            "Como fazer uma análise bibliométrica?",
-            "Qual metodologia usar para pesquisa qualitativa?",
-            "Como encontrar gaps na literatura científica?",
-            "Quais critérios usar para revisão por pares?"
+            "Como calcular a pegada de carbono de edificações?",
+            "Qual metodologia usar para análise de ciclo de vida?",
+            "Como integrar energia renovável em projetos urbanos?",
+            "Critérios para certificação LEED e BREEAM"
         ],
         "advanced": [
-            "Como conduzir uma meta-análise?",
-            "Estratégias para publicar em periódicos de alto impacto",
-            "Como estruturar uma proposta de financiamento?",
-            "Tendências emergentes em inteligência artificial"
+            "Como desenvolver cidades inteligentes sustentáveis?",
+            "Estratégias para financiamento de infraestrutura verde",
+            "Como estruturar parcerias público-privadas sustentáveis?",
+            "Tendências em materiais de construção inovadores"
         ],
         "search_focused": [
-            "Como encontrar artigos sobre sustentabilidade?",
-            "Buscar especialistas em biotecnologia",
-            "Onde encontrar dados sobre mudanças climáticas?",
-            "Como acessar teses e dissertações?"
+            "Como encontrar artigos sobre cidades sustentáveis?",
+            "Buscar especialistas em infraestrutura verde",
+            "Onde encontrar dados sobre eficiência energética?",
+            "Como acessar relatórios de sustentabilidade urbana?"
         ],
         "methodology_focused": [
-            "Diferenças entre pesquisa quantitativa e qualitativa",
-            "Como calcular o tamanho da amostra?",
-            "Métodos de análise de dados textuais",
-            "Como validar instrumentos de pesquisa?"
+            "Métodos de avaliação de sustentabilidade urbana",
+            "Como medir a resiliência de infraestruturas?",
+            "Técnicas de modelagem energética predial",
+            "Como validar indicadores de sustentabilidade?"
         ],
         "general": [
-            "O que é inteligência artificial?",
-            "Como citar artigos científicos corretamente?",
-            "Quais são as tendências em pesquisa médica?",
-            "Como colaborar com pesquisadores internacionais?"
+            "O que são edifícios net-zero?",
+            "Como implementar mobilidade urbana sustentável?",
+            "Quais são as tendências em energia renovável?",
+            "Como promover economia circular na construção?"
         ]
     }
     
     # Sugestões por área de conhecimento
     SUGGESTIONS_BY_FIELD = {
-        "medicina": [
-            "Avanços recentes em medicina personalizada",
-            "Como conduzir ensaios clínicos randomizados?",
-            "Pesquisas sobre COVID-19 e suas sequelas",
-            "Inovações em telemedicina"
+        "energia": [
+            "Sistemas de energia solar fotovoltaica em edifícios",
+            "Como integrar armazenamento de energia renovável?",
+            "Redes elétricas inteligentes e microgrids urbanas",
+            "Eficiência energética em sistemas prediais"
         ],
-        "tecnologia": [
-            "Aplicações de machine learning na ciência",
-            "Blockchain na pesquisa científica",
-            "Internet das Coisas (IoT) em saúde",
-            "Computação quântica: fundamentos e aplicações"
+        "construcao": [
+            "Materiais sustentáveis na construção civil",
+            "Técnicas de construção com baixo carbono",
+            "Certificações ambientais para edificações",
+            "Retrofit energético em edifícios existentes"
         ],
-        "meio_ambiente": [
-            "Pesquisas sobre energias renováveis",
-            "Impactos das mudanças climáticas",
-            "Biodiversidade e conservação",
-            "Economia circular e sustentabilidade"
+        "mobilidade": [
+            "Infraestrutura para veículos elétricos",
+            "Sistemas de transporte público sustentável",
+            "Planejamento de mobilidade urbana ativa",
+            "Logística urbana com baixa emissão"
         ],
-        "educacao": [
-            "Metodologias ativas de aprendizagem",
-            "Tecnologia educacional pós-pandemia",
-            "Avaliação da aprendizagem online",
-            "Inclusão digital na educação"
+        "agua": [
+            "Sistemas de captação e reuso de água pluvial",
+            "Infraestrutura verde para gestão de águas urbanas",
+            "Tecnologias para tratamento descentralizado",
+            "Saneamento ecológico e sustentável"
+        ],
+        "residuos": [
+            "Gestão circular de resíduos da construção",
+            "Tecnologias para valorização de resíduos urbanos",
+            "Sistemas de coleta inteligente de resíduos",
+            "Compostagem urbana e agricultura vertical"
+        ],
+        "clima": [
+            "Estratégias de adaptação climática urbana",
+            "Infraestrutura resiliente a eventos extremos",
+            "Sequestro de carbono em ambientes urbanos",
+            "Sistemas de alerta climático inteligentes"
         ]
     }
     
@@ -433,10 +445,12 @@ class ChatSuggestions:
         
         # Detectar área de interesse
         field_keywords = {
-            "medicina": ["médico", "saúde", "clínico", "paciente", "doença"],
-            "tecnologia": ["tecnologia", "algoritmo", "software", "dados", "inteligência"],
-            "meio_ambiente": ["ambiente", "clima", "sustentável", "ecologia", "verde"],
-            "educacao": ["educação", "ensino", "aprendizagem", "escola", "pedagógico"]
+            "energia": ["energia", "solar", "eólica", "renovável", "fotovoltaica", "eficiência energética"],
+            "construcao": ["construção", "edifício", "material", "sustentável", "LEED", "certificação"],
+            "mobilidade": ["mobilidade", "transporte", "veículo elétrico", "sustentável", "urbana"],
+            "agua": ["água", "pluvial", "reuso", "tratamento", "saneamento", "hidrica"],
+            "residuos": ["resíduo", "reciclagem", "circular", "compostagem", "lixo"],
+            "clima": ["clima", "carbono", "adaptação", "resiliência", "extremo", "mudanças climáticas"]
         }
         
         detected_field = None
