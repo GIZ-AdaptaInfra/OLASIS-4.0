@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLASIS - Sistema de Información Sostenible</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Reset Básico e Configurações Globais --- */
+        :root {
+            --color-ola: #004FA5;
+            --color-sis: #0072BB;
+            --color-active-link: #00ACEC;
+            --color-text: #333;
+            --color-background: #FFFFFF;
+            --color-gray-light: #f8f9fa;
+            --color-gray-medium: #e9ecef;
+            --color-gray-dark: #6c757d;
+            --font-main: 'Arial Narrow', Arial, sans-serif;
+            --font-logo: 'Poppins', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            overflow-x: hidden;
+            transition: filter 0.3s ease;
+        }
+        body.grayscale { filter: grayscale(100%); }
+        body.modal-open { overflow: hidden; }
+
+        /* --- Classes Utilitárias --- */
+        .hidden { display: none !important; }
+        .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+        /* --- Cabeçalho (Layout Ajustado) --- */
+        header {
+            position: absolute; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem 2.5rem; z-index: 1000;
+        }
+        .header-left, .header-right { display: flex; align-items: center; gap: 1.5rem; }
+        
+        .olabot-header-icon { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; /* Valor reduzido de 0.8rem para 0.5rem */
+            text-decoration: none; 
+            color: var(--color-text); 
+        }
+
+        .olabot-icon-placeholder-header {
+            width: 32px; height: 32px; border-radius: 50%;
+            background-color: var(--color-gray-medium); border: 1px solid var(--color-gray-medium);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .olabot-icon-placeholder-header img, .olabot-icon-placeholder-inline img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%;}
+        .olabot-header-icon span { font-weight: bold; font-size: 1rem; }
+        header nav { display: flex; gap: 1.5rem; } 
+        header nav a { 
+            position: relative;
+            text-decoration: none; 
+            color: var(--color-text); 
+            font-size: 1rem; 
+            padding: 0.5rem; 
+            transition: color 0.3s; 
+        }
+        header nav a:hover { color: var(--color-sis); }
+        
+        header nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--color-active-link);
+            transform: scaleX(0);
+            transition: transform 0.3s ease-in-out;
+            transform-origin: center;
+        }
+        header nav a.active::after,
+        header nav a:hover::after {
+            transform: scaleX(1);
+        }
+
+        .language-switcher { display: flex; border: 1px solid var(--color-gray-medium); border-radius: 20px; overflow: hidden; }
+        .language-switcher .lang-btn { background: none; border: none; padding: 0.5rem 1rem; cursor: pointer; color: var(--color-text); transition: all 0.3s; font-family: var(--font-main); }
+        .language-switcher .lang-btn.active { background-color: var(--color-sis); color: var(--color-background); }
+        #accessibility-btn { background: none; border: none; cursor: pointer; }
+        #accessibility-btn svg { width: 28px; height: 28px; stroke: var(--color-text); }
+
+        /* --- Container Principal de Busca --- */
+        #search-page {
+            height: 100vh; width: 100%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 1rem;
+        }
+        .logo-container { margin-bottom: 2.5rem; }
+        .logo { font-family: var(--font-logo); font-weight: 600; font-size: 6rem; letter-spacing: 2px; color: var(--color-ola); }
+        .logo-highlight { color: var(--color-sis); }
+        .tagline { font-size: 1.25rem; color: var(--color-gray-dark); margin-top: -1rem; }
+
+        /* --- Área de Busca --- */
+        .search-area { display: flex; align-items: center; gap: 1rem; position: relative; width: 100%; max-width: 1050px; justify-content: center; }
+        .search-wrapper { flex-grow: 1; max-width: 950px; }
+        .search-form { display: flex; width: 100%; position: relative; }
+        .search-bar { width: 100%; padding: 1.3rem 4.5rem 1.3rem 2.5rem; font-size: 1.2rem; font-family: var(--font-main); border: 1px solid #dfe1e5; border-radius: 50px; background-color: var(--color-background); box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: box-shadow 0.3s, border-color 0.3s; }
+        .search-bar:focus { outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-color: #dfe1e5; }
+        .search-button { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .search-button svg { stroke: var(--color-gray-dark); transition: stroke 0.2s; }
+        .search-button:hover svg { stroke: var(--color-sis); }
+
+        .olabot-inline-container { position: relative; flex-shrink: 0; }
+        #olabot-inline-btn { width: 58px; height: 58px; border-radius: 50%; background: var(--color-background); border: 1px solid #dfe1e5; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 0; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
+        #olabot-inline-btn:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .olabot-icon-placeholder-inline { width: 100%; height: 100%; background-color: var(--color-sis); }
+        .tooltip { visibility: hidden; width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1001; bottom: 125%; left: 50%; margin-left: -100px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .olabot-inline-container:hover .tooltip { visibility: visible; opacity: 1; }
+        .olabot-inline-container.chat-open .tooltip { visibility: hidden; opacity: 0; }
+
+        /* --- Chat Popup Inline --- */
+        #inline-chat-window {
+            position: absolute; bottom: calc(100% + 15px); left: 50%;
+            transform: translateX(-50%) scale(0.95); width: 310px; height: 320px; 
+            background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; opacity: 0; visibility: hidden;
+            transition: all 0.3s ease; transform-origin: bottom center; 
+        }
+        #inline-chat-window.show { opacity: 1; visibility: visible; transform: translateX(-50%) scale(1); }
+        .inline-chat-header { padding: 0.5rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-gray-medium); flex-shrink: 0; }
+        .inline-chat-header h3 { font-size: 1rem; color: var(--color-sis); }
+        .inline-chat-controls button { background: none; border: none; cursor: pointer; padding: 0.25rem; }
+        .inline-chat-messages { flex-grow: 1; padding: 0.75rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;}
+        .inline-chat-messages .chat-bubble { max-width: 80%; padding: 0.5rem 0.8rem; border-radius: 1rem; line-height: 1.4; word-wrap: break-word; font-size: 0.9rem;}
+        .inline-chat-messages .chat-bubble.user { background-color: var(--color-sis); color: white; align-self: flex-end; border-bottom-right-radius: 0.25rem; }
+        .inline-chat-messages .chat-bubble.bot { background-color: var(--color-gray-medium); color: var(--color-text); align-self: flex-start; border-bottom-left-radius: 0.25rem; }
+        /* Estilos para formatação Markdown dentro das bolhas do bot */
+        .inline-chat-messages .chat-bubble.bot p { margin: 0.5rem 0; line-height: 1.5; }
+        .inline-chat-messages .chat-bubble.bot p:first-child { margin-top: 0; }
+        .inline-chat-messages .chat-bubble.bot p:last-child { margin-bottom: 0; }
+        .inline-chat-messages .chat-bubble.bot strong { font-weight: 600; color: var(--color-sis); }
+        .inline-chat-messages .chat-bubble.bot em { font-style: italic; }
+        .inline-chat-messages .chat-bubble.bot a { color: var(--color-sis); text-decoration: underline; }
+        .inline-chat-messages .chat-bubble.bot a:hover { color: var(--color-active-link); }
+        .inline-chat-messages .chat-bubble.bot br { line-height: 1.8; }
+        .inline-chat-footer { padding: 0.5rem; border-top: 1px solid var(--color-gray-medium); flex-shrink: 0; }
+        .inline-chat-footer form { display: flex; gap: 0.5rem; }
+        .inline-chat-footer input { flex-grow: 1; border: 1px solid var(--color-gray-medium); padding: 0.5rem; border-radius: 20px; font-size: 0.9rem; }
+        .inline-chat-footer input:focus { outline: none; border-color: var(--color-sis); }
+        .inline-chat-footer button { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 0 0.5rem; }
+
+        /* --- Sugestões de Perguntas --- */
+        .chat-suggestions {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--color-gray-medium);
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        .chat-suggestions-title {
+            font-size: 0.8rem;
+            color: var(--color-gray-dark);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .suggestions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        
+        /* --- Animações para Sugestões --- */
+        @keyframes suggestionFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .suggestion-bubble {
+            animation: suggestionFadeIn 0.4s ease forwards;
+        }
+
+        .suggestion-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            line-height: 1.3;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+        }
+        .suggestion-bubble:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .suggestion-bubble:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .suggestions-fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        /* --- Indicador de Digitação --- */
+        .chat-bubble.typing {
+            background-color: var(--color-gray-medium);
+            color: var(--color-gray-dark);
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+            padding: 0.8rem;
+        }
+        .chat-bubble.typing span {
+            width: 4px;
+            height: 4px;
+            background-color: currentColor;
+            border-radius: 50%;
+            animation: typingDots 1.4s infinite ease-in-out;
+        }
+        .chat-bubble.typing span:nth-child(1) { animation-delay: 0s; }
+        .chat-bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
+        .chat-bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingDots {
+            0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+            30% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .info-boxes { display: flex; gap: 1.5rem; margin-top: 2.5rem; }
+        .info-box { font-size: 1rem; color: var(--color-background); background-color: var(--color-sis); padding: 0.7rem 1.5rem; border: none; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+
+        /* --- Página de Resultados --- */
+        #results-page { padding: 2rem 3rem; background-color: #fff; }
+        .results-header { display: flex; align-items: center; gap: 2rem; padding: 0.5rem 0; border-bottom: 1px solid var(--color-gray-medium); position: sticky; top: 0; background: #fff; z-index: 999; }
+        .results-logo { font-family: var(--font-logo); font-weight: 600; font-size: 2rem; color: var(--color-ola); cursor: pointer; text-decoration: none; }
+        .results-logo span { color: var(--color-sis); }
+        .results-search-form { flex-grow: 1; max-width: 800px; }
+        #results-search-input { width: 100%; padding: 0.9rem 1.5rem; font-size: 1rem; border: 1px solid #dfe1e5; border-radius: 25px; }
+        .filters-container { padding: 1.5rem 0; display: flex; gap: 1rem; }
+        .filter-btn { padding: 0.6rem 1.5rem; background: var(--color-gray-medium); border: none; border-radius: 20px; cursor: pointer; transition: all 0.3s; }
+        .filter-btn.active { background: var(--color-sis); color: white; box-shadow: 0 2px 8px rgba(0, 114, 187, 0.4); }
+        
+        /* Back to Home Button */
+        .back-to-home-btn {
+            padding: 0.6rem 1.5rem; 
+            background: var(--color-ola); 
+            color: white;
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-family: var(--font-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+        .back-to-home-btn:hover { 
+            background: var(--color-active-link); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 79, 165, 0.3); 
+        }
+        .back-to-home-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .results-content { display: grid; grid-template-columns: 1fr; gap: 2.5rem; margin-top: 1rem; }
+        .results-column h2 { font-size: 1.75rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; color: var(--color-text); }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        .result-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--color-gray-medium); text-align: left; transition: all 0.3s; }
+        .result-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .result-card h3 { color: var(--color-sis); margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .result-card p { margin-bottom: 0.5rem; line-height: 1.6; color: var(--color-gray-dark); }
+        .result-card .orcid { color: var(--color-gray-dark); font-size: 0.9rem; font-style: italic; }
+        .result-card .contact-link { color: var(--color-ola); text-decoration: none; font-weight: bold; }
+        .result-card footer { background: none; padding: 1rem 0 0; text-align: left; color: var(--color-gray-dark); font-size: 0.9rem;}
+
+        /* Pagination Controls */
+        .pagination-controls { margin: 20px 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .pagination-btn { 
+            padding: 0.6rem 1.5rem; 
+            background: var(--color-gray-medium); 
+            color: var(--color-text);
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-family: var(--font-main);
+        }
+        .pagination-btn:hover { 
+            background: var(--color-sis); 
+            color: white; 
+            box-shadow: 0 2px 8px rgba(0, 114, 187, 0.4); 
+        }
+        .pagination-info {
+            margin: 0 15px; 
+            font-size: 0.9rem; 
+            color: var(--color-gray-dark); 
+            font-family: var(--font-main);
+        }
+
+        /* --- Seções da Landing Page (Espaçamento Ajustado) --- */
+        #landing-content { background-color: var(--color-gray-light); padding-top: 1px; }
+        .content-section { padding: 6rem 2rem; max-width: 1000px; margin: 0 auto; }
+        #tutorial { padding-top: 2rem; }
+        #que-es .content-grid { display: flex; gap: 4rem; align-items: flex-start; }
+        #que-es .content-column { flex: 1; text-align: justify; }
+        #que-es h2 { font-size: 2.5rem; margin-bottom: 2.5rem; color: var(--color-sis); text-align: center; }
+        #que-es h3 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--color-text); text-align: left;}
+        #que-es ul { list-style: none; padding-left: 0; }
+        #que-es li { font-size: 1.1rem; line-height: 1.7; margin-bottom: 1rem; }
+        #tutorial .content-grid { display: flex; gap: 3rem; align-items: center; }
+        #tutorial .video-placeholder { flex: 1.2; height: 320px; background-color: var(--color-gray-medium); border-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        #tutorial .play-button { width: 80px; height: 80px; background-color: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+        #tutorial .video-placeholder:hover .play-button { transform: scale(1.1); }
+        #tutorial .play-button svg { fill: var(--color-text); }
+        #tutorial .text-content { flex: 1; text-align: left; }
+        #tutorial h3 { font-size: 2rem; color: var(--color-sis); margin-bottom: 1rem; }
+        #tutorial p { font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; }
+        #tutorial .cta-btn { background-color: var(--color-sis); color: white; padding: 0.8rem 1.8rem; border: none; border-radius: 25px; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 114, 187, 0.3); transition: transform 0.2s; }
+        #tutorial .cta-btn:hover { transform: translateY(-2px); }
+
+        /* --- Estilos do Rodapé --- */
+        footer { 
+            text-align: center; 
+            padding: 4rem 2rem 2rem 2rem; 
+            background-color: var(--color-gray-light); 
+            color: var(--color-gray-dark); 
+            font-size: 0.9rem; 
+        }
+        .logo-bar-container {
+            margin-bottom: 3rem;
+            min-height: 50px;
+        }
+        
+        /* --- NOVO MODAL DE COOKIES --- */
+        .cookie-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; 
+            z-index: 4000;
+        }
+        .cookie-modal-overlay.show { display: flex; }
+        .cookie-modal-content {
+            background: white; padding: 2rem; border-radius: 8px;
+            width: 90%; max-width: 600px; text-align: left;
+        }
+        .cookie-modal-content h2 { font-family: var(--font-main); font-size: 1.5rem; color: var(--color-ola); margin-bottom: 1rem; }
+        .cookie-modal-content p { line-height: 1.6; margin-bottom: 1.5rem; font-size: 1rem; }
+        .cookie-modal-content p a { color: var(--color-sis); text-decoration: underline; cursor: pointer; }
+        .cookie-modal-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
+        .cookie-modal-buttons button {
+            width: 100%; padding: 0.8rem; border-radius: 5px; border: 1px solid var(--color-sis);
+            font-size: 1rem; font-family: var(--font-main); cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cookie-btn-accept { background-color: var(--color-sis); color: white; }
+        .cookie-btn-accept:hover { background-color: var(--color-ola); }
+        .cookie-btn-settings { background: white; color: var(--color-sis); }
+        .cookie-btn-settings:hover { background: var(--color-gray-light); }
+        .cookie-btn-decline { background: white; color: var(--color-sis); }
+        .cookie-btn-decline:hover { background: var(--color-gray-light); }
+        .cookie-modal-links { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; }
+        .cookie-modal-links a { color: var(--color-gray-dark); text-decoration: none; margin: 0 0.5rem; }
+        .cookie-modal-links a:hover { text-decoration: underline; }
+
+        /* --- Pagination Controls --- */
+        .pagination-controls { margin: 20px 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .pagination-btn { 
+            padding: 0.6rem 1.5rem; 
+            background: var(--color-gray-medium); 
+            color: var(--color-text);
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-family: var(--font-main);
+        }
+        .pagination-btn:hover { 
+            background: var(--color-sis); 
+            color: white; 
+            box-shadow: 0 2px 8px rgba(0, 114, 187, 0.4); 
+        }
+        .pagination-info {
+            margin: 0 15px; 
+            font-size: 0.9rem; 
+            color: var(--color-gray-dark); 
+            font-family: var(--font-main);
+        }
+        
+        /* --- DESIGN RESPONSIVO --- */
+        @media (max-width: 1024px) {
+            .logo { font-size: 5rem; }
+            .tagline { font-size: 1.1rem; }
+            .search-area { max-width: 90%; }
+            .content-section { padding: 4rem 1.5rem; }
+            #que-es .content-grid { flex-direction: column; gap: 2.5rem; }
+            #tutorial .content-grid { flex-direction: column; gap: 2rem; }
+            header { padding: 1rem 1.5rem; }
+        }
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 1rem; position: relative; }
+            .header-left, .header-right { width: 100%; justify-content: space-between; }
+            .header-left { order: 1; }
+            .header-right { order: 2; }
+            .olabot-header-icon { margin-right: auto; }
+            .language-switcher { margin-left: auto; }
+            header nav { gap: 1rem; }
+            header nav a { padding: 0.5rem 0.2rem; }
+            .logo { font-size: 3.5rem; }
+            .tagline { font-size: 1rem; }
+            .search-area { flex-direction: column; gap: 1.5rem; }
+            #search-page { padding-top: 150px; }
+            .search-bar { padding: 1.1rem 4rem 1.1rem 2rem; font-size: 1rem; }
+            #olabot-inline-btn { width: 50px; height: 50px; }
+            .info-boxes { flex-direction: column; gap: 0.8rem; }
+            #results-page { padding: 1rem; }
+            .results-header { flex-direction: column; gap: 1rem; }
+            .filters-container { flex-wrap: wrap; justify-content: center; }
+            .back-to-home-btn { margin-left: 0; margin-top: 0.5rem; width: 100%; justify-content: center; }
+            .results-grid { grid-template-columns: 1fr; }
+            #inline-chat-window { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); }
+            #inline-chat-window.show { transform: translateX(-50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-left">
+            <a href="javascript:void(0)" onclick="openChatbotPage()" class="olabot-header-icon" title="Abrir OLABOT en una nueva pestaña">
+                <div class="olabot-icon-placeholder-header">
+                    <img src="https://i.ibb.co/20Jycz8Q/Olacita.png" alt="Ícone OLABOT">
+                </div>
+                <span data-key="olabot">OLABOT</span>
+            </a>
+            <nav>
+                <a href="#que-es" data-key="what-is">¿Qué es?</a>
+                <a href="#tutorial" data-key="tutorial">Tutorial</a>
+                <a href="https://olacefs.com/contacto/" target="_blank" data-key="contact">Contacto</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div class="language-switcher">
+                <button class="lang-btn active" data-lang="es">ES</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="pt">PT</button>
+            </div>
+            <button id="accessibility-btn" title="Modo de daltonismo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span class="visually-hidden">Activar modo daltonismo</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="search-page">
+        <div class="logo-container">
+            <h1 class="logo">OLA<span class="logo-highlight">SIS</span></h1>
+            <p class="tagline" data-key="tagline">Sistema de Información Sostenible</p>
+        </div>
+        <div class="search-area">
+            <div class="search-wrapper">
+                <form id="search-form" class="search-form">
+                    <input type="search" id="search-input" data-key="search-placeholder" placeholder="Buscar artículos o especialistas..." class="search-bar" required>
+                    <button type="submit" class="search-button" title="Buscar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </form>
+            </div>
+            <div class="olabot-inline-container">
+                <button id="olabot-inline-btn">
+                    <div class="olabot-icon-placeholder-inline">
+                        <img src="https://i.ibb.co/20Jycz8Q/Olacita.png" alt="Ícone OLABOT Chat">
+                    </div>
+                </button>
+                <div class="tooltip" data-key="tooltip">¿Cómo puedo ayudarte hoy?</div>
+                <div id="inline-chat-window">
+                    <div class="inline-chat-header">
+                        <h3>OLABOT</h3>
+                        <div class="inline-chat-controls"><button id="close-chat-btn" title="Cerrar chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+                    </div>
+                    <div class="chat-suggestions" id="chat-suggestions">
+                        <div class="chat-suggestions-title">💡 Perguntas sugeridas:</div>
+                        <div class="suggestions-container" id="suggestions-container">
+                            <!-- Sugestões serão carregadas dinamicamente -->
+                        </div>
+                    </div>
+                    <div class="inline-chat-messages"></div>
+                    <div class="inline-chat-footer"><form id="inline-chat-form"><input type="text" placeholder="Escribe un mensaje..." autocomplete="off"><button type="submit" title="Enviar mensaje"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-sis)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button></form></div>
+                </div>
+            </div>
+        </div>
+        <div class="info-boxes">
+            <div class="info-box" id="articles-counter">+ de 200.000.000 artículos</div>
+            <div class="info-box" id="specialists-counter">+ de 250.117 especialistas</div>
+        </div>
+    </main>
+    
+    <div id="results-page" class="hidden">
+        <header class="results-header">
+            <a href="javascript:goHome()" class="logo results-logo" title="Volver a la página principal">OLA<span class="logo-highlight">SIS</span></a>
+            <form class="results-search-form" id="results-form">
+                <input type="search" id="results-search-input" placeholder="Buscar de novo...">
+            </form>
+        </header>
+        <div class="filters-container">
+            <button class="filter-btn active" data-filter="all">Todo</button>
+            <button class="filter-btn" data-filter="articles">Artículos</button>
+            <button class="filter-btn" data-filter="specialists">Especialistas</button>
+            <button class="back-to-home-btn" onclick="goHome()" title="Voltar à página inicial">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Inicio
+            </button>
+        </div>
+        <div class="results-content">
+            <div class="results-column" id="articles-results">
+                <h2>Artículos</h2>
+                <div class="results-grid">
+                    <div class="result-card"><h3>Auditoría de Infraestrutura Verde: Un Nuevo Paradigma</h3><p>Este documento explora los desafíos y oportunidades in a auditoría de projetos de infraestrutura sustentável...</p><footer>Fonte: OLACEFS Journal, 2024</footer></div>
+                    <div class="result-card"><h3>Buenas Prácticas en la Fiscalización de Obras Públicas Verdes</h3><p>Análisis de casos de estudio de toda la región, destacando as metodologías mais eficazes...</p><footer>Fonte: Conferência Anual CCC, 2023</footer></div>
+                </div>
+            </div>
+            <div class="results-column" id="specialists-results">
+                <h2>Especialistas</h2>
+                <div class="results-grid">
+                    <div class="result-card"><h3>Dra. Elena Sofia Torres</h3><p>Especialista en políticas públicas para la sostenibilidad y fiscalización ambiental. Vasta experiencia en proyectos con impacto regional.</p><p class="orcid">ORCID: 0000-0002-1825-0097</p><a href="#" class="contact-link">Contactar</a></div>
+                    <div class="result-card"><h3>Dr. João Alvez Pereira</h3><p>Investigador principal en el área de materiales sostenibles para la construcción y su ciclo de vida.</p><p class="orcid">ORCID: 0000-0001-5109-3700</p><a href="#" class="contact-link">Contactar</a></div>
+                </div>
+            </div>
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-btn" id="prev-page-btn" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/>
+                </svg>
+                Anterior
+            </button>
+            <span class="pagination-info" id="page-info">Página 1 de 10</span>
+            <button class="pagination-btn" id="next-page-btn">
+                Siguiente
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="landing-content">
+        <section id="que-es" class="content-section">
+            <h2 data-key="que-es-title">Entienda el OLASIS-OLACEFS</h2>
+            <div class="content-grid">
+                <div class="content-column">
+                    <h3 data-key="what-is-header">¿Qué es el Buscador Inteligente?</h3>
+                    <ul>
+                        <li data-key="what-is-1">Una herramienta para encontrar información relevante sobre auditoría de infraestructura verde en OLACEFS.</li>
+                        <li data-key="what-is-2">Ofrece resúmenes concisos y enlaces directos a artículos, documentos y estudios de caso completos.</li>
+                        <li data-key="what-is-3">Permite buscar por lecciones aprendidas, buenas prácticas y normas relacionadas.</li>
+                        <li data-key="what-is-4">Incluye perfiles y publicaciones de expertos e investigadores del área (con suporte a ORCID para identificação).</li>
+                        <li data-key="what-is-5">Es amigable, rápido y fácil de usar, diseñado para el día a día de los auditores.</li>
+                    </ul>
+                </div>
+                <div class="content-column">
+                    <h3 data-key="what-is-not-header">¿Qué NO es el Buscador Inteligente?</h3>
+                    <ul>
+                        <li data-key="what-is-not-1">No es un servicio de consultoría jurídica o técnica personalizada.</li>
+                        <li data-key="what-is-not-2">No garantiza información completa en todos los resúmenes; el acceso al enlace original es fundamental para detalles.</li>
+                        <li data-key="what-is-not-3">Puede haber retrasos en la actualización de metadatos o enlaces.</li>
+                        <li data-key="what-is-not-4">Actualmente, el enfoque es en infraestructura verde y temas relacionados con OLACEFS, pudiendo tener limitaciones en otros sectores ou regiões.</li>
+                        <li data-key="what-is-not-5">No sustituye el análisis humano y el juicio profesional.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <section id="tutorial" class="content-section">
+            <div class="content-grid">
+                <div class="video-placeholder">
+                    <div class="play-button"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></div>
+                </div>
+                <div class="text-content">
+                    <h3 data-key="tutorial-title">¡Guía Rápida para el Éxito!</h3>
+                    <p data-key="tutorial-desc">Mira nuestro video tutorial para aprender a navegar, buscar y aprovechar al máximo todas las funcionalidades del OLASIS.</p>
+                    <button class="cta-btn" data-key="tutorial-btn">Ver Tutorial</button>
+                </div>
+            </div>
+        </section>
+        <footer>
+            <div class="logo-bar-container">
+                <img src="https://i.ibb.co/tpyTSFD2/Barra-de-Logos-em-Espanhol.png" alt="Barra de Logos" border="0" />
+            </div>
+            <p>© 2025 OLASIS. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+
+    <div id="cookie-modal-overlay" class="cookie-modal-overlay">
+        <div class="cookie-modal-content">
+            <h2>Configuración de la Protección de Datos</h2>
+            <p>Este sitio web utiliza medios externos, como vídeos, y una herramienta de análisis propia que puede utilizarse para recopilar datos sobre su comportamiento. También se utilizan cookies en este proceso. Usted puede ajustar o revocar su consentimiento para el uso de cookies y extensiones en cualquier momento.</p>
+            <div class="cookie-modal-buttons">
+                <button id="cookie-accept-all" class="cookie-btn-accept">De acuerdo</button>
+                <button id="cookie-settings" class="cookie-btn-settings">Establecer las preferencias de privacidad</button>
+                <button id="cookie-decline" class="cookie-btn-decline">Disminución</button>
+            </div>
+            <div class="cookie-modal-links">
+                <a href="javascript:void(0)" id="modal-policy-link">Política de privacidad</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const translations = {
+                es: {
+                    'olabot': 'OLABOT',
+                    'what-is': '¿Qué es?',
+                    'tutorial': 'Tutorial',
+                    'contact': 'Contacto',
+                    'tagline': 'Sistema de Información Sostenible',
+                    'search-placeholder': 'Buscar artículos o especialistas...',
+                    'tooltip': '¿Cómo puedo ayudarte hoy?',
+                    'que-es-title': 'Entienda el OLASIS-OLACEFS',
+                    'what-is-header': '¿Qué es el Buscador Inteligente?',
+                    'what-is-1': 'Una herramienta para encontrar información relevante sobre auditoría de infraestructura verde en OLACEFS.',
+                    'what-is-2': 'Ofrece resúmenes concisos y enlaces directos a artículos, documentos y estudios de caso completos.',
+                    'what-is-3': 'Permite buscar por lecciones aprendidas, buenas prácticas y normas relacionadas.',
+                    'what-is-4': 'Incluye perfiles y publicaciones de expertos e investigadores del área (con suporte a ORCID para identificação).',
+                    'what-is-5': 'Es amigable, rápido y fácil de usar, diseñado para el día a día de los auditores.',
+                    'what-is-not-header': '¿Qué NO es el Buscador Inteligente?',
+                    'what-is-not-1': 'No es un servicio de consultoría jurídica o técnica personalizada.',
+                    'what-is-not-2': 'No garantiza información completa en todos los resúmenes; el acceso al enlace original es fundamental para detalles.',
+                    'what-is-not-3': 'Puede haber retrasos en la actualización de metadatos o enlaces.',
+                    'what-is-not-4': 'Actualmente, el enfoque es en infraestructura verde y temas relacionados con OLACEFS, pudiendo tener limitaciones en otros sectores ou regiões.',
+                    'what-is-not-5': 'No sustituye el análisis humano y el juicio profesional.',
+                    'tutorial-title': '¡Guía Rápida para el Éxito!',
+                    'tutorial-desc': 'Mira nuestro video tutorial para aprender a navegar, buscar y aprovechar al máximo todas las funcionalidades del OLASIS.',
+                    'tutorial-btn': 'Ver Tutorial',
+                    'olabot-inline-message': '¡Hola! Soy OLABOT, tu asistente especializado en investigación científica. Para una experiencia completa de chat, haz clic en "OLABOT" en la esquina superior izquierda de la página. Allí podrás conversar conmigo sin límites y obtener respuestas más detalladas sobre cualquier tema académico.',
+                },
+                en: {
+                    'olabot': 'OLABOT',
+                    'what-is': 'What is it?',
+                    'tutorial': 'Tutorial',
+                    'contact': 'Contact',
+                    'tagline': 'Sustainable Information System',
+                    'search-placeholder': 'Search for articles or specialists...',
+                    'tooltip': 'How can I help you today?',
+                    'que-es-title': 'Understand OLASIS-OLACEFS',
+                    'what-is-header': 'What is the Smart Search?',
+                    'what-is-1': 'A tool to find relevant information on green infrastructure auditing in OLACEFS.',
+                    'what-is-2': 'Offers concise summaries and direct links to full articles, documents, and case studies.',
+                    'what-is-3': 'Allows searching for lessons learned, best practices, and related standards.',
+                    'what-is-4': 'Includes profiles and publications of experts and researchers in the field (with ORCID support for identification).',
+                    'what-is-5': 'It is user-friendly, fast, and easy to use, designed for the daily work of auditors.',
+                    'what-is-not-header': 'What is the Smart Search NOT?',
+                    'what-is-not-1': 'It is not a personalized legal or technical consulting service.',
+                    'what-is-not-2': 'It does not guarantee complete information in all summaries; access to the original link is essential for details.',
+                    'what-is-not-3': 'There may be delays in updating metadata or links.',
+                    'what-is-not-4': 'Currently, the focus is on green infrastructure and OLACEFS-related topics, and may have limitations in other sectors or regions.',
+                    'what-is-not-5': 'It does not replace human analysis and professional judgment.',
+                    'tutorial-title': 'Quick Guide to Success!',
+                    'tutorial-desc': 'Watch our video tutorial to learn how to navigate, search, and make the most of all OLASIS features.',
+                    'tutorial-btn': 'Watch Tutorial',
+                    'olabot-inline-message': 'Hello! I am OLABOT, your assistant specialized in scientific research. For a complete chat experience, click on "OLABOT" in the top left corner of the page. There you can chat with me without limits and get more detailed answers on any academic topic.',
+                },
+                pt: {
+                    'olabot': 'OLABOT',
+                    'what-is': 'O que é?',
+                    'tutorial': 'Tutorial',
+                    'contact': 'Contato',
+                    'tagline': 'Sistema de Informação Sustentável',
+                    'search-placeholder': 'Buscar por artigos ou especialistas...',
+                    'tooltip': 'Como posso te ajudar hoje?',
+                    'que-es-title': 'Entenda o OLASIS-OLACEFS',
+                    'what-is-header': 'O que é o Buscador Inteligente?',
+                    'what-is-1': 'Uma ferramenta para encontrar informações relevantes sobre auditoria de infraestrutura verde na OLACEFS.',
+                    'what-is-2': 'Oferece resumos concisos e links diretos para artigos, documentos e estudos de caso completos.',
+                    'what-is-3': 'Permite pesquisar por lições aprendidas, boas práticas e normas relacionadas.',
+                    'what-is-4': 'Inclui perfis e publicações de especialistas e pesquisadores da área (com suporte ORCID para identificação).',
+                    'what-is-5': 'É amigável, rápido e fácil de usar, projetado para o dia a dia dos auditores.',
+                    'what-is-not-header': 'O que o Buscador Inteligente NÃO é?',
+                    'what-is-not-1': 'Não é um serviço de consultoria jurídica ou técnica personalizada.',
+                    'what-is-not-2': 'Não garante informações completas em todos os resumos; o acesso ao link original é fundamental para detalhes.',
+                    'what-is-not-3': 'Pode haver atrasos na atualização de metadados ou links.',
+                    'what-is-not-4': 'Atualmente, o foco é em infraestrutura verde e temas relacionados à OLACEFS, podendo ter limitações em outros setores ou regiões.',
+                    'what-is-not-5': 'Não substitui a análise humana e o julgamento profissional.',
+                    'tutorial-title': 'Guia Rápido para o Sucesso!',
+                    'tutorial-desc': 'Assista ao nosso vídeo tutorial para aprender a navegar, pesquisar e aproveitar ao máximo todas as funcionalidades do OLASIS.',
+                    'tutorial-btn': 'Ver Tutorial',
+                    'olabot-inline-message': 'Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica. Para uma experiência completa de chat, clique em "OLABOT" no canto superior esquerdo da página. Lá você poderá conversar comigo sem limites e obter respostas mais detalhadas sobre qualquer tópico acadêmico.',
+                }
+            };
+
+            const langButtons = document.querySelectorAll('.language-switcher .lang-btn');
+            const searchInput = document.getElementById('search-input');
+            const elementsToTranslate = document.querySelectorAll('[data-key]');
+            let currentLanguage = 'es'; // Default language
+            
+            function setLanguage(lang) {
+                if (!translations[lang]) return;
+
+                document.documentElement.lang = lang; 
+
+                elementsToTranslate.forEach(element => {
+                    const key = element.getAttribute('data-key');
+                    if (translations[lang][key]) {
+                        if (element.placeholder !== undefined) {
+                            element.placeholder = translations[lang][key];
+                        } else {
+                            element.textContent = translations[lang][key];
+                        }
+                    }
+                });
+                
+                langButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-lang') === lang) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                localStorage.setItem('language', lang);
+                currentLanguage = lang; // Store current language
+            }
+
+            langButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const lang = button.getAttribute('data-lang');
+                    setLanguage(lang);
+                });
+            });
+
+            const searchPage = document.getElementById('search-page');
+            const resultsPage = document.getElementById('results-page');
+            const landingContent = document.getElementById('landing-content');
+            const mainHeader = document.querySelector('.main-header');
+            const searchForm = document.getElementById('search-form');
+            const resultsForm = document.getElementById('results-form');
+            const resultsSearchInput = document.getElementById('results-search-input');
+
+            function showResults(query) {
+                mainHeader.classList.add('hidden');
+                searchPage.classList.add('hidden');
+                landingContent.classList.add('hidden');
+                resultsPage.classList.remove('hidden');
+                resultsSearchInput.value = query;
+                window.scrollTo(0, 0);
+            }
+
+            function goHome() {
+                resultsPage.classList.add('hidden');
+                mainHeader.classList.remove('hidden');
+                searchPage.classList.remove('hidden');
+                landingContent.classList.remove('hidden');
+            }
+
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) showResults(query);
+            });
+            resultsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log(`Nova pesquisa por: ${resultsSearchInput.value}`);
+            });
+            window.goHome = goHome; 
+
+            document.getElementById('accessibility-btn').addEventListener('click', () => {
+                document.body.classList.toggle('grayscale');
+            });
+
+            const olabotInlineBtn = document.getElementById('olabot-inline-btn');
+            const olabotInlineContainer = document.querySelector('.olabot-inline-container');
+            const inlineChatWindow = document.getElementById('inline-chat-window');
+            const closeChatBtn = document.getElementById('close-chat-btn');
+            const inlineChatForm = document.getElementById('inline-chat-form');
+            const inlineChatInput = inlineChatForm.querySelector('input');
+            const inlineChatMessages = inlineChatWindow.querySelector('.inline-chat-messages');
+            
+            // --- Sistema de Sugestões de Perguntas ---
+            const chatSuggestions = document.getElementById('chat-suggestions');
+            const suggestionsContainer = document.getElementById('suggestions-container');
+            let suggestionsLoaded = false;
+            
+            async function loadChatSuggestions() {
+                if (suggestionsLoaded) return;
+                
+                try {
+                    const response = await fetch('/api/chat/suggestions?context=general&limit=4');
+                    const data = await response.json();
+                    
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        displaySuggestions(data.suggestions);
+                        suggestionsLoaded = true;
+                    }
+                } catch (error) {
+                    console.warn('Erro ao carregar sugestões:', error);
+                    // Fallback com sugestões estáticas
+                    displaySuggestions([
+                        "O que é inteligência artificial?",
+                        "Como fazer uma pesquisa científica?",
+                        "Onde encontrar artigos acadêmicos?",
+                        "Como avaliar fontes científicas?"
+                    ]);
+                    suggestionsLoaded = true;
+                }
+            }
+            
+            function displaySuggestions(suggestions) {
+                suggestionsContainer.innerHTML = '';
+                
+                suggestions.forEach((suggestion, index) => {
+                    const suggestionBubble = document.createElement('button');
+                    suggestionBubble.className = 'suggestion-bubble';
+                    suggestionBubble.textContent = suggestion;
+                    suggestionBubble.style.animationDelay = (index * 0.1) + 's';
+                    
+                    suggestionBubble.addEventListener('click', () => {
+                        handleSuggestionClick(suggestion);
+                    });
+                    
+                    suggestionsContainer.appendChild(suggestionBubble);
+                });
+            }
+            
+            function handleSuggestionClick(suggestion) {
+                // Adicionar sugestão como mensagem do usuário
+                appendInlineMessage(suggestion, 'user');
+                
+                // Ocultar sugestões com animação
+                chatSuggestions.classList.add('suggestions-fade-out');
+                setTimeout(() => {
+                    chatSuggestions.style.display = 'none';
+                }, 300);
+                
+                // Simular digitação do bot
+                setTimeout(() => {
+                    sendMessageToBot(suggestion);
+                }, 500);
+            }
+            
+            async function sendMessageToBot(message) {
+                try {
+                    // Indicador de digitação
+                    const typingBubble = document.createElement('div');
+                    typingBubble.className = 'chat-bubble bot typing';
+                    typingBubble.innerHTML = '<span>•</span><span>•</span><span>•</span>';
+                    inlineChatMessages.appendChild(typingBubble);
+                    inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
+                    
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message, lang: currentLanguage })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Remover indicador de digitação
+                    typingBubble.remove();
+                    
+                    if (data.response) {
+                        appendInlineMessage(data.response, 'bot');
+                    } else {
+                        appendInlineMessage('Desculpe, não consegui processar sua pergunta no momento.', 'bot');
+                    }
+                } catch (error) {
+                    console.error('Erro ao enviar mensagem:', error);
+                    // Remover indicador de digitação se existir
+                    const typingBubble = inlineChatMessages.querySelector('.typing');
+                    if (typingBubble) typingBubble.remove();
+                    
+                    appendInlineMessage('Para uma experiência completa de chat, clique em "OLABOT" no canto superior esquerdo da página.', 'bot');
+                }
+            }
+            
+            function appendInlineMessage(text, type) {
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble ' + type;
+                bubble.textContent = text;
+                inlineChatMessages.appendChild(bubble);
+                inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
+            }
+
+            inlineChatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userMessage = inlineChatInput.value.trim();
+                if (!userMessage) return;
+                appendInlineMessage(userMessage, 'user');
+                inlineChatInput.value = '';
+                setTimeout(() => {
+                    appendInlineMessage('¡Hola! Soy OLABOT, tu asistente especializado en investigación científica. Para una experiencia completa de chat, haz clic en "OLABOT" en la esquina superior izquierda de la página. Allí podrás conversar conmigo sin límites y obtener respuestas más detalladas sobre cualquier tema académico.', 'bot');
+                }, 800);
+            });
+            
+            function toggleChat(show) {
+                inlineChatWindow.classList.toggle('show', show);
+                olabotInlineContainer.classList.toggle('chat-open', show);
+                
+                // Carregar sugestões quando o chat for aberto
+                if (show) {
+                    loadChatSuggestions();
+                }
+            }
+
+            olabotInlineBtn.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                const isOpening = !inlineChatWindow.classList.contains('show');
+                toggleChat(isOpening);
+            });
+            closeChatBtn.addEventListener('click', () => { toggleChat(false); });
+            document.addEventListener('click', (e) => { 
+                if (!inlineChatWindow.contains(e.target) && !olabotInlineBtn.contains(e.target)) { 
+                    toggleChat(false);
+                }
+            });
+
+            // Lógica do Modal de Cookies
+            const cookieModal = document.getElementById('cookie-modal-overlay');
+            const acceptAllBtn = document.getElementById('cookie-accept-all');
+            const declineBtn = document.getElementById('cookie-decline');
+            const settingsBtn = document.getElementById('cookie-settings');
+
+            function handleCookieChoice(consent) {
+                localStorage.setItem('cookieConsent', consent);
+                cookieModal.classList.remove('show');
+                document.body.classList.remove('modal-open');
+            }
+            
+            setTimeout(() => {
+                cookieModal.classList.add('show');
+                document.body.classList.add('modal-open');
+            }, 1000);
+            
+            acceptAllBtn.addEventListener('click', () => handleCookieChoice('accepted'));
+            declineBtn.addEventListener('click', () => handleCookieChoice('declined'));
+            settingsBtn.addEventListener('click', () => {
+                handleCookieChoice('settings');
+            });
+
+            const articlesCounterEl = document.getElementById('articles-counter');
+            const specialistsCounterEl = document.getElementById('specialists-counter');
+            let articlesCount = 200000000;
+            let specialistsCount = 20005117;
+            let lastApiUpdate = 0;
+            
+            function formatNumber(num) { return new Intl.NumberFormat('es-ES').format(num); }
+            
+            function updateCountersText() {
+                articlesCounterEl.textContent = `+ de ${formatNumber(articlesCount)} artículos`;
+                specialistsCounterEl.textContent = `+ ${formatNumber(specialistsCount)} especialistas`;
+            }
+            
+            // Function to fetch real-time stats from APIs
+            async function fetchRealTimeStats() {
+                try {
+                    const response = await fetch('/api/stats');
+                    if (response.ok) {
+                        const data = await response.json();
+                        articlesCount = data.articles;
+                        specialistsCount = data.specialists;
+                        lastApiUpdate = Date.now();
+                        updateCountersText();
+                        console.log('Stats updated from APIs:', data);
+                    }
+                } catch (error) {
+                    console.log('Using simulated increments (API unavailable)');
+                }
+            }
+            
+            // Initial load of real-time stats
+            fetchRealTimeStats();
+            
+            // Update from APIs every 5 minutes
+            setInterval(fetchRealTimeStats, 5 * 60 * 1000);
+            
+            // Simulate small increments between API calls (every 2.5 seconds)
+            setInterval(() => {
+                const timeSinceApiUpdate = Date.now() - lastApiUpdate;
+                // Only simulate if last API update was more than 30 seconds ago
+                if (timeSinceApiUpdate > 30000) {
+                    articlesCount += Math.floor(Math.random() * 3) + 1;
+                    specialistsCount += Math.floor(Math.random() * 2) + 1;
+                    updateCountersText();
+                }
+            }, 2500);
+
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const articlesColumn = document.getElementById('articles-results');
+            const specialistsColumn = document.getElementById('specialists-results');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const filter = button.dataset.filter;
+                    if (filter === 'all') {
+                        articlesColumn.classList.remove('hidden');
+                        specialistsColumn.classList.remove('hidden');
+                    } else if (filter === 'articles') {
+                        articlesColumn.classList.remove('hidden');
+                        specialistsColumn.classList.add('hidden');
+                    } else if (filter === 'specialists') {
+                        articlesColumn.classList.add('hidden');
+                        specialistsColumn.classList.remove('hidden');
+                    }
+                });
+            });
+
+            const navLinks = document.querySelectorAll('header nav a[href^="#"]');
+            const sections = document.querySelectorAll('.content-section');
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.4 };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+            sections.forEach(section => observer.observe(section));
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    setTimeout(() => {
+                        navLinks.forEach(nav => nav.classList.remove('active'));
+                        this.classList.add('active');
+                    }, 300);
+                });
+            });
+            
+            const savedLang = localStorage.getItem('language') || 'es';
+            setLanguage(savedLang);
+        });
+
+        function openChatbotPage() {
+    // Recupera idioma salvo no OLASIS
+    const savedLang = localStorage.getItem('language') || 'es';
+
+    // Textos traduzidos
+    const translations = {
+        es: {
+            welcome: "¿Cómo puedo ayudarte hoy?",
+            placeholder: "Escribe tu mensaje...",
+            error: "Lo siento, ocurrió un error."
+        },
+        en: {
+            welcome: "How can I help you today?",
+            placeholder: "Type your message...",
+            error: "Sorry, an error occurred."
+        },
+        pt: {
+            welcome: "Como posso te ajudar hoje?",
+            placeholder: "Digite sua mensagem...",
+            error: "Desculpe, ocorreu um erro."
+        }
+    };
+
+    const t = translations[savedLang] || translations['es'];
+
+    const chatHtmlContent = `
+        <!DOCTYPE html><html lang="${savedLang}">
+        <head><meta charset="UTF-8"><title>OLABOT</title>
+        <style>
+            body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #fff; }
+            .chat-page-container { display: flex; flex-direction: column; height: 100%; max-width: 800px; margin: 0 auto; }
+            .chat-messages { flex-grow: 1; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
+            .chat-bubble { max-width: 75%; padding: 0.8rem 1.2rem; border-radius: 1.2rem; line-height: 1.5; word-wrap: break-word; }
+            .chat-bubble.user { background-color: #0072BB; color: white; align-self: flex-end; border-bottom-right-radius: 0.3rem; }
+            .chat-bubble.bot { background-color: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 0.3rem; }
+            .input-container { padding: 1rem; border-top: 1px solid #e9ecef; }
+            #chat-input-form { display: flex; gap: 0.75rem; align-items: center; }
+            #chat-input { flex-grow: 1; padding: 0.8rem 1.2rem; border: 1px solid #ccc; border-radius: 20px; font-size: 1rem; }
+            #chat-input:focus { outline: none; border-color: #0072BB; }
+            #send-btn { padding: 0.6rem; border: none; background-color: #0072BB; color: white; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+            .initial-message { text-align: center; margin: auto; }
+            .initial-message h1 { font-size: 1.8rem; font-weight: 500; color: #555; }
+            .typing-indicator { display: none; align-items: center; gap: 5px; padding: 0.8rem 1.2rem; background-color: #e9ecef; border-radius: 1.2rem; align-self: flex-start; }
+            .typing-dot { width: 8px; height: 8px; background-color: #999; border-radius: 50%; animation: typingDots 1.4s infinite; }
+            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes typingDots { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+        </style>
+        </head><body>
+        <div class="chat-page-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="initial-message"><h1>${t.welcome}</h1></div>
+            </div>
+            <div class="input-container">
+                <div class="typing-indicator" id="typing-indicator-separate">
+                    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                </div>
+                <form id="chat-input-form">
+                    <input type="text" id="chat-input" placeholder="${t.placeholder}" autocomplete="off">
+                    <button type="submit" id="send-btn" title="Enviar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <script>
+            const form = document.getElementById('chat-input-form'); 
+            const input = document.getElementById('chat-input'); 
+            const messagesContainer = document.getElementById('chat-messages'); 
+            const initialMessage = document.querySelector('.initial-message'); 
+            const typingIndicator = document.getElementById('typing-indicator-separate');
+
+            async function sendMessage(message) {
+                if(initialMessage) initialMessage.style.display = 'none';
+                appendMessage(message, 'user');
+                typingIndicator.style.display = 'flex';
+                
+                try {
+                     const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message, lang: '${savedLang}' })
+                    });
+                    const data = await response.json();
+                    const botResponse = data.response || data.message || '${t.error}';
+                    typingIndicator.style.display = 'none';
+                    appendMessage(botResponse, 'bot');
+                } catch (err) {
+                    typingIndicator.style.display = 'none';
+                    appendMessage('${t.error}', 'bot');
+                }
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); 
+                const userMessage = input.value.trim(); 
+                if (!userMessage) return;
+                input.value = '';
+                await sendMessage(userMessage);
+            });
+
+            function appendMessage(text, type) { 
+                const bubble = document.createElement('div'); 
+                bubble.className = 'chat-bubble ' + type; 
+                bubble.textContent = text; 
+                messagesContainer.appendChild(bubble); 
+                messagesContainer.scrollTop = messagesContainer.scrollHeight; 
+            }
+        <\/script></body></html>`;
+    
+    const newWindow = window.open();
+    newWindow.document.write(chatHtmlContent);
+    newWindow.document.close();
+}
+
+
+    </script>
+    <!-- Custom client-side logic overrides the default behaviour with API integration -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
