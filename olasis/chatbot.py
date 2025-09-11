@@ -75,6 +75,7 @@ class Chatbot:
     def ask(
         self,
         question: str,
+        lang: str = "es",
         context_type: str | None = None,
         conversation_history: Optional[List[str]] = None,
         user_profile: Optional[Dict] = None,
@@ -82,27 +83,60 @@ class Chatbot:
     ) -> str:
         self._history.append(question)
 
+        lang = (lang or "es").lower()
+        
         if self._client is None:
-            return "[Chatbot not available. Please check your API key and dependencies.]"
-
+            unavailable = {
+                "en": "[Chatbot not available. Please check your API key and dependencies.]",
+                "pt": "[Chatbot indisponível. Verifique sua chave de API e dependências.]",
+                "es": "[Chatbot no disponible. Por favor verifica tu API key y dependencias.]",
+            }
+            return unavailable.get(lang, unavailable["es"])
+            
         try:
             # Intro curta apenas na primeira resposta
-            if self.first_answer:
-                system_rules = (
+            intro_prompts = {
+                "en": (
+                    "You are OLABOT, a research assistant for OLASIS 4.0. "
+                    "In the first response, introduce yourself in ONE short paragraph, explain your role and availability. "
+                    "Respond in English."
+                ),
+                "es": (
+                    "Eres OLABOT, asistente especializado en investigación científica del OLASIS 4.0. "
+                    "En la primera respuesta, preséntate en UN párrafo corto, explica tu función y disponibilidad. "
+                    "Responde en español."
+                ),
+                "pt": (
                     "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
                     "Na primeira resposta, apresente-se em UM parágrafo curto, explique sua função e disponibilidade. "
-                    "Não faça textos longos na introdução."
-                )
-            else:
-                system_rules = (
+                      "Responda em português."
+                ),
+            }
+
+            follow_prompts = {
+                "en": (
+                    "You are OLABOT, a research assistant for OLASIS 4.0. "
+                    "Answer the user's question directly in a clear, detailed way, but limit the answer to 2 to 4 paragraphs. "
+                    "Provide scientific or historical context when relevant and avoid overly long responses. Respond in English."
+                ),
+                "es": (
+                    "Eres OLABOT, asistente especializado en investigación científica del OLASIS 4.0. "
+                    "Responde directamente a la pregunta del usuario de forma clara y detallada, "
+                    "pero limita la respuesta a 2 a 4 párrafos como máximo. Proporciona contexto científico o histórico cuando sea pertinente y evita respuestas demasiado largas. Responde en español."
+                ),
+                "pt": (
                     "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
                     "Responda diretamente à pergunta do usuário de forma clara, detalhada e embasada, "
-                    "mas limite a resposta a 2 a 4 parágrafos no máximo. "
-                    "Forneça contexto científico ou histórico quando relevante e use exemplos práticos quando possível. "
-                    "Evite respostas excessivamente longas."
-                )
+                    "mas limite a resposta a 2 a 4 parágrafos no máximo. Forneça contexto científico ou histórico quando relevante e evite respostas excessivamente longas. Responda em português."
+                ),
+            }
 
-            full_prompt = f"{system_rules}\n\nUsuário: {question}"
+            user_labels = {"en": "User", "es": "Usuario", "pt": "Usuário"}
+
+            system_rules = (intro_prompts if self.first_answer else follow_prompts).get(lang, intro_prompts["es"] if self.first_answer else follow_prompts["es"])
+            user_label = user_labels.get(lang, "Usuario")
+
+            full_prompt = f"{system_rules}\n\n{user_label}: {question}"
 
             resp = self._client.models.generate_content(
                 model=self.model,
@@ -124,7 +158,12 @@ class Chatbot:
 
         except Exception as exc:
             logger.error("Gemini API call failed: %s", exc)
-            return "[Desculpe, não consegui gerar uma resposta por causa de um erro na API.]"
+           api_error = {
+                "en": "[Sorry, I couldn't generate a response due to an API error.]",
+                "es": "[Lo siento, no pude generar una respuesta debido a un error en la API.]",
+                "pt": "[Desculpe, não consegui gerar uma resposta por causa de um erro na API.]",
+            }
+            return api_error.get(lang, api_error["es"])
 
     # ------------------------------
     # Pós-processamento
