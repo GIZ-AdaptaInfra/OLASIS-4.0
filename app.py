@@ -17,8 +17,6 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
-HEAD
-
 
 app.secret_key = os.environ.get("SECRET_KEY", "dev-fallback")  # em produção vem das Variáveis do Railway
 
@@ -26,7 +24,6 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SECURE=True,   # deixe True em produção
 )
-61d236f (Atualiza arquivos com CRLF)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'olasis4-secret-key-change-in-production')
 
 # Inicializar OLABOT v2 com engenharia de prompt
