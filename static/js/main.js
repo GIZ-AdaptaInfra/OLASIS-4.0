@@ -1,4 +1,4 @@
-// Additional client‑side logic for OLASIS 4.0
+// Additional client-side logic for OLASIS 4.0
 //
 // This script augments the existing JavaScript in the HTML template.  It
 // intercepts form submissions for search and chat and reroutes them
@@ -46,8 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const info = pagination[type];
     if (info.total_pages <= 1) return controls; // No pagination needed
     
-    console.log(`Creating pagination for ${type}:`, info); // Debug log
-    
     // Previous button
     if (info.has_prev) {
       const prevBtn = document.createElement('button');
@@ -55,19 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
       prevBtn.className = 'pagination-btn';
       prevBtn.setAttribute('data-page', pagination.current_page - 1);
       prevBtn.setAttribute('data-query', currentSearchQuery);
-      
-      // Use both click and touchstart for better mobile responsiveness
+
       const prevHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Previous button clicked, going to page:', pagination.current_page - 1);
-        prevBtn.disabled = true; // Prevent double clicks
+        prevBtn.disabled = true;
         performSearch(currentSearchQuery, pagination.current_page - 1)
-          .finally(() => {
-            prevBtn.disabled = false;
-          });
+          .finally(() => { prevBtn.disabled = false; });
       };
-      
+
       prevBtn.addEventListener('click', prevHandler);
       prevBtn.addEventListener('touchstart', prevHandler);
       controls.appendChild(prevBtn);
@@ -86,19 +80,15 @@ document.addEventListener('DOMContentLoaded', () => {
       nextBtn.className = 'pagination-btn';
       nextBtn.setAttribute('data-page', pagination.current_page + 1);
       nextBtn.setAttribute('data-query', currentSearchQuery);
-      
-      // Use both click and touchstart for better mobile responsiveness
+
       const nextHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Next button clicked, going to page:', pagination.current_page + 1);
-        nextBtn.disabled = true; // Prevent double clicks
+        nextBtn.disabled = true;
         performSearch(currentSearchQuery, pagination.current_page + 1)
-          .finally(() => {
-            nextBtn.disabled = false;
-          });
+          .finally(() => { nextBtn.disabled = false; });
       };
-      
+
       nextBtn.addEventListener('click', nextHandler);
       nextBtn.addEventListener('touchstart', nextHandler);
       controls.appendChild(nextBtn);
@@ -111,8 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function performSearch(query, page = 1) {
     if (!query) return;
     
-    console.log(`Performing search: "${query}", page: ${page}`); // Debug log
-    
     // Show loading state
     const loadingMessage = 'Carregando resultados...';
     if (articlesGrid) {
@@ -123,21 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      const startTime = Date.now();
       const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}&page=${page}`);
-      const endTime = Date.now();
-      console.log(`API response time: ${endTime - startTime}ms`); // Debug log
-      
       if (!resp.ok) throw new Error('Search failed');
       const data = await resp.json();
-      
-      console.log('Search results:', data); // Debug log
       
       // Clear previous results
       if (articlesGrid) articlesGrid.innerHTML = '';
       if (specialistsGrid) specialistsGrid.innerHTML = '';
       
-      // Remove existing pagination controls
       document.querySelectorAll('.pagination-controls').forEach(el => el.remove());
       
       // Populate articles
@@ -157,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
         
-        // Add pagination for articles
         if (data.pagination && articlesGrid.parentNode) {
           const articlesPagination = createPaginationControls('articles', data.pagination);
           articlesGrid.parentNode.appendChild(articlesPagination);
@@ -180,25 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
         
-        // Add pagination for specialists
         if (data.pagination && specialistsGrid.parentNode) {
           const specialistsPagination = createPaginationControls('specialists', data.pagination);
           specialistsGrid.parentNode.appendChild(specialistsPagination);
         }
       }
       
-      // Store current search state
       currentSearchQuery = query;
       currentPage = page;
       
-      // Trigger the built‑in page transition after populating results
       if (typeof window.showResults === 'function') {
         window.showResults(query);
       }
     } catch (err) {
-      console.error('Search error:', err);
-      
-      // Show error message
       const errorMessage = 'Erro ao carregar resultados. Tente novamente.';
       if (articlesGrid) {
         articlesGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${errorMessage}</div>`;
@@ -213,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     searchForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const query = searchInput.value.trim();
-      currentPage = 1; // Reset to first page for new search
+      currentPage = 1;
       await performSearch(query, currentPage);
     });
   }
@@ -222,14 +196,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const inlineChatForm = document.getElementById('inline-chat-form');
   const inlineChatInput = inlineChatForm ? inlineChatForm.querySelector('input') : null;
   const inlineChatMessages = document.querySelector('.inline-chat-messages');
+
   if (inlineChatForm && inlineChatInput && inlineChatMessages) {
-    // Remove the default handler defined in the template by reassigning the
-    // event listener.  The existing listener uses setTimeout to append
-    // placeholder text; our listener will call the back‑end instead.
     inlineChatForm.onsubmit = async (e) => {
       e.preventDefault();
       const userMessage = inlineChatInput.value.trim();
       if (!userMessage) return;
+
+      // Recupera idioma atual do OLASIS (default: es)
+      const currentLang = localStorage.getItem('language') || 'es';
+
+      // Textos traduzidos
+      const translations = {
+        es: { error: "Lo siento, ocurrió un error." },
+        en: { error: "Sorry, an error occurred." },
+        pt: { error: "Desculpe, ocorreu um erro." }
+      };
+
       // Append user bubble
       const userBubble = document.createElement('div');
       userBubble.className = 'chat-bubble user';
@@ -237,56 +220,53 @@ document.addEventListener('DOMContentLoaded', () => {
       inlineChatMessages.appendChild(userBubble);
       inlineChatInput.value = '';
       inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
+
       try {
         const resp = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMessage }),
+          body: JSON.stringify({ message: userMessage, lang: currentLang }),
         });
+
         const data = await resp.json();
-        const reply = data.response || data.message || 'Lo siento, ocurrió un error.';
+        const reply = data.response || data.message || translations[currentLang].error;
+
+        // Limpa formatações Markdown
+        const plainText = reply
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/\*(.*?)\*/g, '$1')
+          .replace(/__(.*?)__/g, '$1')
+          .replace(/_(.*?)_/g, '$1')
+          .replace(/###\s*/g, '')
+          .replace(/##\s*/g, '')
+          .replace(/#\s*/g, '')
+          .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+          .replace(/\n\s*\*\s*/g, '\n• ')
+          .replace(/\n\s*\d+\.\s*/g, '\n')
+          .replace(/\n{3,}/g, '\n\n');
+
         const botBubble = document.createElement('div');
         botBubble.className = 'chat-bubble bot';
-        
-        // Convert markdown-like formatting to plain text for natural conversation
-        const plainText = reply
-          .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold formatting
-          .replace(/\*(.*?)\*/g, '$1')      // Remove italic formatting  
-          .replace(/__(.*?)__/g, '$1')      // Remove bold formatting
-          .replace(/_(.*?)_/g, '$1')        // Remove italic formatting
-          .replace(/###\s*/g, '')           // Remove heading markers
-          .replace(/##\s*/g, '')            // Remove heading markers
-          .replace(/#\s*/g, '')             // Remove heading markers
-          .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')  // Extract link text only
-          .replace(/\n\s*\*\s*/g, '\n• ')   // Convert markdown lists to simple bullets
-          .replace(/\n\s*\d+\.\s*/g, '\n')  // Remove numbered list formatting
-          .replace(/\n{3,}/g, '\n\n');      // Normalize multiple line breaks
-        
         botBubble.textContent = plainText;
         inlineChatMessages.appendChild(botBubble);
         inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
+
       } catch (err) {
         const errBubble = document.createElement('div');
         errBubble.className = 'chat-bubble bot';
-        errBubble.innerHTML = '<p>Lo siento, ocurrió un error.</p>';
+        errBubble.textContent = translations[currentLang].error;
         inlineChatMessages.appendChild(errBubble);
         inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
       }
     };
   }
 
-  // Ensure counters reflect the correct pluralisation when numbers grow.
-  // This code is intentionally minimal because the counters are updated
-  // elsewhere; here we simply fix the Spanish plural if required.
+  // Ensure counters reflect correct pluralisation
   const articlesCounterEl = document.getElementById('articles-counter');
   const specialistsCounterEl = document.getElementById('specialists-counter');
   function updateCountersSuffix() {
-    if (articlesCounterEl && /\bartículos\b/.test(articlesCounterEl.textContent)) {
-      // nothing: the template already uses the correct suffix
-    }
-    if (specialistsCounterEl && /\bespecialistas\b/.test(specialistsCounterEl.textContent)) {
-      // nothing
-    }
+    if (articlesCounterEl && /\bartículos\b/.test(articlesCounterEl.textContent)) { }
+    if (specialistsCounterEl && /\bespecialistas\b/.test(specialistsCounterEl.textContent)) { }
   }
   setInterval(updateCountersSuffix, 5000);
 });

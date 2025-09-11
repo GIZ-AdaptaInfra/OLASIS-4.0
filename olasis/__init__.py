@@ -1,10 +1,8 @@
-"""Top-level package for the OLASIS 4.0 application.
+# C:\Users\darla\OLASIS4.0\olasis\__init__.py
+"""OLASIS 4.0 package – exporta a versão anti-intro por padrão."""
 
-This package exposes helper functions and classes used throughout the
-Flask app and any other back-end. See individual modules for details.
-"""
+from .chatbot import Chatbot  # nossa implementação com filtros anti-intro
+OlaBot = Chatbot              # <— garante que "from olasis import OlaBot" use Chatbot
 
-from .chatbot import Chatbot  # noqa: F401 - Compatibilidade
-from .chatbot_v2 import OlaBot  # noqa: F401 - Nova implementacao
 from .articles import search_articles  # noqa: F401
 from .specialists import search_specialists  # noqa: F401

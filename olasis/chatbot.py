@@ -2,72 +2,49 @@
 OLABOT - Chatbot Inteligente para Pesquisa Científica
 ====================================================
 
-Sistema de chatbot avançado integrado ao OLASIS 4.0, especializado em pesquisa
-científica e acadêmica. Utiliza engenharia de prompt profissional e integração
-com Google Gemini para fornecer assistência contextualizada e de alta qualidade.
-
-Características principais:
-- Prompts contextualizados por tipo de consulta
-- Respostas otimizadas para pesquisa acadêmica  
-- Integração automática com ferramentas do OLASIS
-- Filtros de qualidade e segurança
-- Histórico de conversa inteligente
-
-Referencias:
-- Google Gemini API: https://ai.google.dev/
-- Prompt Engineering Best Practices: https://platform.openai.com/docs/guides/prompt-engineering
+Versão otimizada:
+- Primeira resposta: intro curta do OLABOT
+- Respostas seguintes: explicações moderadas (2–4 parágrafos), claras e embasadas
 """
-from __future__ import annotations
 
+from __future__ import annotations
 import os
 import logging
-import time
-from typing import List, Dict, Optional
+from typing import List, Optional, Dict
 
 try:
     from google import genai  # type: ignore
 except Exception:
-    genai = None  # fall back if google-genai is not installed
-
-# Importar classes de engenharia de prompt
-try:
-    from .prompt_engineering import (
-        PromptBuilder, 
-        ResponseOptimizer, 
-        BEST_PRACTICES_CONFIG,
-        CONTENT_FILTERS
-    )
-except ImportError:
-    # Fallback para quando o módulo não estiver disponível
-    PromptBuilder = None
-    ResponseOptimizer = None
-    BEST_PRACTICES_CONFIG = {}
-    CONTENT_FILTERS = {}
+    genai = None
 
 logger = logging.getLogger(__name__)
 
 
 class Chatbot:
-    """Simple wrapper around Google’s Gemini API for conversational use.
+    """Chatbot com intro inicial e respostas moderadas."""
 
-    Parameters
-    ----------
-    api_key: str | None
-        Your Gemini API key.  If ``None``, it will be read from the
-        ``GOOGLE_API_KEY`` environment variable.  If the key is not found
-        and the SDK cannot be imported, the chatbot will remain disabled.
-    model: str
-        Name of the model to use (default ``gemini-2.5-flash``).  See the
-        Gemini API documentation for available models.
-    """
-
-    def __init__(self, api_key: str | None = None, model: str = 'gemini-2.5-flash') -> None:
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = "gemini-2.5-flash",
+        temperature: float = 0.6,         # ligeiramente menor p/ reduzir divagações
+        top_p: float = 0.9,
+        max_output_tokens: int = 2000,    # limite de tamanho moderado
+        enable_prompt_engineering: bool = True,
+    ) -> None:
         if api_key is None:
-            api_key = os.getenv('GOOGLE_API_KEY')
+            api_key = os.getenv("GOOGLE_API_KEY")
+
         self.api_key: str | None = api_key
         self.model: str = model
+        self.temperature = temperature
+        self.top_p = top_p
+        self.max_output_tokens = max_output_tokens
+        self.enable_prompt_engineering = enable_prompt_engineering
+
         self._client = None
         self._history: List[str] = []
+        self.first_answer: bool = True  # <-- controla intro inicial
 
         if genai is None:
             logger.warning("google-genai library is not installed; Chatbot will be disabled.")
@@ -75,48 +52,96 @@ class Chatbot:
         if not self.api_key:
             logger.warning("GOOGLE_API_KEY is not set; Chatbot will be disabled.")
             return
-        # Configure the API key.  If not set, the client will attempt to read
-        # from environment variable GEMINI_API_KEY as per the SDK documentation.
-        os.environ['GEMINI_API_KEY'] = self.api_key
+
+        os.environ["GEMINI_API_KEY"] = self.api_key
         try:
             self._client = genai.Client()
+            logger.info("Chatbot otimizado — model=%s", self.model)
         except Exception as exc:
             logger.error("Failed to initialise Google GenAI client: %s", exc)
             self._client = None
 
-    def ask(self, question: str) -> str:
-        """Send a question to Gemini and return the text response.
+        self.model_info = {
+            "model": self.model,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "max_output_tokens": self.max_output_tokens,
+            "prompt_engineering": self.enable_prompt_engineering,
+        }
 
-        If the client is not initialised properly, a fallback message will be
-        returned.  The question is appended to internal history, but the
-        underlying API call is stateless in this simple implementation.
-
-        Parameters
-        ----------
-        question: str
-            The user’s input.
-
-        Returns
-        -------
-        str
-            The model’s reply as plain text, or an error message if the
-            request could not be fulfilled.
-        """
+    # ------------------------------
+    # Chamada principal
+    # ------------------------------
+    def ask(
+        self,
+        question: str,
+        context_type: str | None = None,
+        conversation_history: Optional[List[str]] = None,
+        user_profile: Optional[Dict] = None,
+        **kwargs,
+    ) -> str:
         self._history.append(question)
+
         if self._client is None:
-            return "[Chatbot not available.  Please check your API key and dependencies.]"
+            return "[Chatbot not available. Please check your API key and dependencies.]"
+
         try:
-            response = self._client.models.generate_content(
+            # Intro curta apenas na primeira resposta
+            if self.first_answer:
+                system_rules = (
+                    "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
+                    "Na primeira resposta, apresente-se em UM parágrafo curto, explique sua função e disponibilidade. "
+                    "Não faça textos longos na introdução."
+                )
+            else:
+                system_rules = (
+                    "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
+                    "Responda diretamente à pergunta do usuário de forma clara, detalhada e embasada, "
+                    "mas limite a resposta a 2 a 4 parágrafos no máximo. "
+                    "Forneça contexto científico ou histórico quando relevante e use exemplos práticos quando possível. "
+                    "Evite respostas excessivamente longas."
+                )
+
+            full_prompt = f"{system_rules}\n\nUsuário: {question}"
+
+            resp = self._client.models.generate_content(
                 model=self.model,
-                contents=question
+                contents=full_prompt,
+                config={
+                    "temperature": float(self.temperature),
+                    "top_p": float(self.top_p),
+                    "max_output_tokens": int(self.max_output_tokens),
+                },
             )
-            # The response object has a `.text` attribute containing the generated text.
-            return getattr(response, 'text', str(response))
+
+            answer_raw = getattr(resp, "text", str(resp))
+            processed = self._postprocess(answer_raw)
+
+            if self.first_answer:
+                self.first_answer = False
+
+            return processed
+
         except Exception as exc:
             logger.error("Gemini API call failed: %s", exc)
-            return "[Sorry, I couldn’t generate a response due to an API error.]"
+            return "[Desculpe, não consegui gerar uma resposta por causa de um erro na API.]"
 
-    @property
-    def history(self) -> List[str]:
-        """Return the list of previous user questions."""
-        return self._history
+    # ------------------------------
+    # Pós-processamento
+    # ------------------------------
+    def _postprocess(self, raw_answer: str) -> str:
+        return (raw_answer or "").strip()
+
+    # ------------------------------
+    # Estatísticas de sessão
+    # ------------------------------
+    def get_session_stats(self) -> dict:
+        return {
+            "total_questions": len(self._history),
+            "last_question": self._history[-1] if self._history else None,
+            "model": self.model,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "max_output_tokens": self.max_output_tokens,
+            "prompt_engineering": self.enable_prompt_engineering,
+        }

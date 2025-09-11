@@ -1059,105 +1059,123 @@
         });
 
         function openChatbotPage() {
-            const chatHtmlContent = `
-                <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>OLABOT</title>
-                <style>
-                    body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #fff; }
-                    .chat-page-container { display: flex; flex-direction: column; height: 100%; max-width: 800px; margin: 0 auto; }
-                    .chat-messages { flex-grow: 1; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
-                    .chat-bubble { max-width: 75%; padding: 0.8rem 1.2rem; border-radius: 1.2rem; line-height: 1.5; word-wrap: break-word; }
-                    .chat-bubble.user { background-color: #0072BB; color: white; align-self: flex-end; border-bottom-right-radius: 0.3rem; }
-                    .chat-bubble.bot { background-color: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 0.3rem; }
-                    .input-container { padding: 1rem; border-top: 1px solid #e9ecef; }
-                    .chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; padding: 10px; }
-                    .suggestion-bubble { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; border: none; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3); }
-                    .suggestion-bubble:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4); background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
-                    .suggestion-bubble.fade-out { opacity: 0; transform: scale(0.9); }
-                    .typing-indicator { display: none; align-items: center; gap: 5px; padding: 0.8rem 1.2rem; background-color: #e9ecef; border-radius: 1.2rem; align-self: flex-start; }
-                    .typing-dot { width: 8px; height: 8px; background-color: #999; border-radius: 50%; animation: typingDots 1.4s infinite; }
-                    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-                    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-                    @keyframes typingDots { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
-                    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                    .chat-suggestions { animation: fadeIn 0.5s ease-out; }
-                    #chat-input-form { display: flex; gap: 0.75rem; align-items: center; }
-                    #chat-input { flex-grow: 1; padding: 0.8rem 1.2rem; border: 1px solid #ccc; border-radius: 20px; font-size: 1rem; }
-                    #chat-input:focus { outline: none; border-color: #0072BB; }
-                    #send-btn { padding: 0.6rem; border: none; background-color: #0072BB; color: white; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-                    .initial-message { text-align: center; margin: auto; }
-                    .initial-message h1 { font-size: 1.8rem; font-weight: 500; color: #555; }
-                </style>
-                </head><body><div class="chat-page-container"><div class="chat-messages" id="chat-messages"><div class="initial-message"><h1>¿Cómo puedo ayudarte hoy?</h1></div></div><div class="input-container"><div class="chat-suggestions" id="chat-suggestions-separate"></div><div class="typing-indicator" id="typing-indicator-separate"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div><form id="chat-input-form"><input type="text" id="chat-input" placeholder="Escribe tu mensaje..." autocomplete="off"><button type="submit" id="send-btn" title="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button></form></div></div>
-                <script>
-                    const form = document.getElementById('chat-input-form'); const input = document.getElementById('chat-input'); const messagesContainer = document.getElementById('chat-messages'); const initialMessage = document.querySelector('.initial-message'); const suggestionsContainer = document.getElementById('chat-suggestions-separate'); const typingIndicator = document.getElementById('typing-indicator-separate');
-                    
-                    // Load suggestions on page load
-                    loadSuggestions();
-                    
-                    async function loadSuggestions() {
-                        try {
-                            const response = await fetch('/api/chat/suggestions?context=general&count=4');
-                            const data = await response.json();
-                            displaySuggestions(data.suggestions);
-                        } catch (error) {
-                            const fallbackSuggestions = ['O que são edifícios net-zero?', 'Como implementar mobilidade urbana sustentável?', 'Sistemas de energia solar em edifícios', 'Infraestrutura verde urbana'];
-                            displaySuggestions(fallbackSuggestions);
-                        }
-                    }
-                    
-                    function displaySuggestions(suggestions) {
-                        suggestionsContainer.innerHTML = '';
-                        suggestions.forEach(suggestion => {
-                            const bubble = document.createElement('button');
-                            bubble.className = 'suggestion-bubble';
-                            bubble.textContent = suggestion;
-                            bubble.onclick = () => sendSuggestion(suggestion);
-                            suggestionsContainer.appendChild(bubble);
-                        });
-                    }
-                    
-                    function sendSuggestion(suggestion) {
-                        const bubbles = document.querySelectorAll('.suggestion-bubble');
-                        bubbles.forEach(bubble => {
-                            bubble.classList.add('fade-out');
-                        });
-                        setTimeout(() => {
-                            suggestionsContainer.style.display = 'none';
-                            sendMessage(suggestion);
-                        }, 300);
-                    }
-                    
-                    async function sendMessage(message) {
-                        if(initialMessage) initialMessage.style.display = 'none';
-                        appendMessage(message, 'user');
-                        
-                        typingIndicator.style.display = 'flex';
-                        
-                        try {
-                            const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: message }) });
-                            const data = await response.json();
-                            const botResponse = data.response || data.message || 'Lo siento, ocurrió un error.';
-                            typingIndicator.style.display = 'none';
-                            appendMessage(botResponse, 'bot');
-                        } catch (err) {
-                            typingIndicator.style.display = 'none';
-                            appendMessage('Lo siento, ocurrió un error.', 'bot');
-                        }
-                    }
-                    
-                    form.addEventListener('submit', async (e) => {
-                        e.preventDefault(); const userMessage = input.value.trim(); if (!userMessage) return;
-                        input.value = '';
-                        suggestionsContainer.style.display = 'none';
-                        await sendMessage(userMessage);
-                    });
-                    
-                    function appendMessage(text, type) { const bubble = document.createElement('div'); bubble.className = 'chat-bubble ' + type; bubble.textContent = text; messagesContainer.appendChild(bubble); messagesContainer.scrollTop = messagesContainer.scrollHeight; }
-                <\/script></body></html>`;
-            const newWindow = window.open();
-            newWindow.document.write(chatHtmlContent);
-            newWindow.document.close();
+    // Recupera idioma salvo no OLASIS
+    const savedLang = localStorage.getItem('language') || 'es';
+
+    // Textos traduzidos
+    const translations = {
+        es: {
+            welcome: "¿Cómo puedo ayudarte hoy?",
+            placeholder: "Escribe tu mensaje...",
+            error: "Lo siento, ocurrió un error."
+        },
+        en: {
+            welcome: "How can I help you today?",
+            placeholder: "Type your message...",
+            error: "Sorry, an error occurred."
+        },
+        pt: {
+            welcome: "Como posso te ajudar hoje?",
+            placeholder: "Digite sua mensagem...",
+            error: "Desculpe, ocorreu um erro."
         }
+    };
+
+    const t = translations[savedLang] || translations['es'];
+
+    const chatHtmlContent = `
+        <!DOCTYPE html><html lang="${savedLang}">
+        <head><meta charset="UTF-8"><title>OLABOT</title>
+        <style>
+            body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #fff; }
+            .chat-page-container { display: flex; flex-direction: column; height: 100%; max-width: 800px; margin: 0 auto; }
+            .chat-messages { flex-grow: 1; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
+            .chat-bubble { max-width: 75%; padding: 0.8rem 1.2rem; border-radius: 1.2rem; line-height: 1.5; word-wrap: break-word; }
+            .chat-bubble.user { background-color: #0072BB; color: white; align-self: flex-end; border-bottom-right-radius: 0.3rem; }
+            .chat-bubble.bot { background-color: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 0.3rem; }
+            .input-container { padding: 1rem; border-top: 1px solid #e9ecef; }
+            #chat-input-form { display: flex; gap: 0.75rem; align-items: center; }
+            #chat-input { flex-grow: 1; padding: 0.8rem 1.2rem; border: 1px solid #ccc; border-radius: 20px; font-size: 1rem; }
+            #chat-input:focus { outline: none; border-color: #0072BB; }
+            #send-btn { padding: 0.6rem; border: none; background-color: #0072BB; color: white; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+            .initial-message { text-align: center; margin: auto; }
+            .initial-message h1 { font-size: 1.8rem; font-weight: 500; color: #555; }
+            .typing-indicator { display: none; align-items: center; gap: 5px; padding: 0.8rem 1.2rem; background-color: #e9ecef; border-radius: 1.2rem; align-self: flex-start; }
+            .typing-dot { width: 8px; height: 8px; background-color: #999; border-radius: 50%; animation: typingDots 1.4s infinite; }
+            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes typingDots { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+        </style>
+        </head><body>
+        <div class="chat-page-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="initial-message"><h1>${t.welcome}</h1></div>
+            </div>
+            <div class="input-container">
+                <div class="typing-indicator" id="typing-indicator-separate">
+                    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                </div>
+                <form id="chat-input-form">
+                    <input type="text" id="chat-input" placeholder="${t.placeholder}" autocomplete="off">
+                    <button type="submit" id="send-btn" title="Enviar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <script>
+            const form = document.getElementById('chat-input-form'); 
+            const input = document.getElementById('chat-input'); 
+            const messagesContainer = document.getElementById('chat-messages'); 
+            const initialMessage = document.querySelector('.initial-message'); 
+            const typingIndicator = document.getElementById('typing-indicator-separate');
+
+            async function sendMessage(message) {
+                if(initialMessage) initialMessage.style.display = 'none';
+                appendMessage(message, 'user');
+                typingIndicator.style.display = 'flex';
+                
+                try {
+                    const response = await fetch('/api/chat', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ message: message }) 
+                    });
+                    const data = await response.json();
+                    const botResponse = data.response || data.message || '${t.error}';
+                    typingIndicator.style.display = 'none';
+                    appendMessage(botResponse, 'bot');
+                } catch (err) {
+                    typingIndicator.style.display = 'none';
+                    appendMessage('${t.error}', 'bot');
+                }
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); 
+                const userMessage = input.value.trim(); 
+                if (!userMessage) return;
+                input.value = '';
+                await sendMessage(userMessage);
+            });
+
+            function appendMessage(text, type) { 
+                const bubble = document.createElement('div'); 
+                bubble.className = 'chat-bubble ' + type; 
+                bubble.textContent = text; 
+                messagesContainer.appendChild(bubble); 
+                messagesContainer.scrollTop = messagesContainer.scrollHeight; 
+            }
+        <\/script></body></html>`;
+    
+    const newWindow = window.open();
+    newWindow.document.write(chatHtmlContent);
+    newWindow.document.close();
+}
+
+
     </script>
     <!-- Custom client-side logic overrides the default behaviour with API integration -->
     <script src="/static/js/main.js"></script>
