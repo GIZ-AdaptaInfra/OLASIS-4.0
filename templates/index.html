@@ -150,73 +150,14 @@
         .inline-chat-messages .chat-bubble.bot a { color: var(--color-sis); text-decoration: underline; }
         .inline-chat-messages .chat-bubble.bot a:hover { color: var(--color-active-link); }
         .inline-chat-messages .chat-bubble.bot br { line-height: 1.8; }
+        .inline-chat-welcome { margin: auto; text-align: center; color: var(--color-gray-dark); font-size: 0.9rem; }
         .inline-chat-footer { padding: 0.5rem; border-top: 1px solid var(--color-gray-medium); flex-shrink: 0; }
         .inline-chat-footer form { display: flex; gap: 0.5rem; }
         .inline-chat-footer input { flex-grow: 1; border: 1px solid var(--color-gray-medium); padding: 0.5rem; border-radius: 20px; font-size: 0.9rem; }
         .inline-chat-footer input:focus { outline: none; border-color: var(--color-sis); }
         .inline-chat-footer button { background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 0 0.5rem; }
 
-        /* --- Sugestões de Perguntas --- */
-        .chat-suggestions {
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--color-gray-medium);
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        }
-        .chat-suggestions-title {
-            font-size: 0.8rem;
-            color: var(--color-gray-dark);
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            text-align: center;
-        }
-        .suggestions-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-        
-        /* --- Animações para Sugestões --- */
-        @keyframes suggestionFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .suggestion-bubble {
-            animation: suggestionFadeIn 0.4s ease forwards;
-        }
-
-        .suggestion-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            line-height: 1.3;
-            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
-        }
-        .suggestion-bubble:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        .suggestion-bubble:active {
-            transform: translateY(0) scale(0.98);
-        }
-        .suggestions-fade-out {
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-        }
+        /* --- Sugestões removidas --- */
         
         /* --- Indicador de Digitação --- */
         .chat-bubble.typing {
@@ -497,18 +438,18 @@
                 <div id="inline-chat-window">
                     <div class="inline-chat-header">
                         <h3>OLABOT</h3>
-                        <div class="inline-chat-controls"><button id="close-chat-btn" title="Cerrar chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+                        <div class="inline-chat-controls"><button id="close-chat-btn" data-title-key="close-chat" title="Cerrar chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
                     </div>
-                    <div class="chat-suggestions" id="chat-suggestions">
-                        <div class="chat-suggestions-title">💡 Perguntas sugeridas:</div>
-                        <div class="suggestions-container" id="suggestions-container">
-                            <!-- Sugestões serão carregadas dinamicamente -->
-                        </div>
+                    <div class="inline-chat-messages">
+                        <div class="inline-chat-welcome" data-key="inline-chat-welcome"></div>
                     </div>
-                    <div class="inline-chat-messages"></div>
-                    <div class="inline-chat-footer"><form id="inline-chat-form"><input type="text" placeholder="Escribe un mensaje..." autocomplete="off"><button type="submit" title="Enviar mensaje"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-sis)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button></form></div>
-                </div>
-            </div>
+                    <div class="inline-chat-footer">
+                        <form id="inline-chat-form">
+                            <input type="text" data-key="inline-chat-placeholder" placeholder="Escribe un mensaje..." autocomplete="off">
+                            <button type="submit" data-title-key="send-message" title="Enviar mensaje"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-sis)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button>
+                        </form>
+                    </div>
+               </div>
         </div>
         <div class="info-boxes">
             <div class="info-box" id="articles-counter">+ de 200.000.000 artículos</div>
@@ -640,6 +581,10 @@
                     'tagline': 'Sistema de Información Sostenible',
                     'search-placeholder': 'Buscar artículos o especialistas...',
                     'tooltip': '¿Cómo puedo ayudarte hoy?',
+                    'inline-chat-placeholder': 'Escribe un mensaje...',
+                    'inline-chat-welcome': '¿Cómo puedo ayudarte hoy?',
+                    'close-chat': 'Cerrar chat',
+                    'send-message': 'Enviar mensaje',
                     'que-es-title': 'Entienda el OLASIS-OLACEFS',
                     'what-is-header': '¿Qué es el Buscador Inteligente?',
                     'what-is-1': 'Una herramienta para encontrar información relevante sobre auditoría de infraestructura verde en OLACEFS.',
@@ -666,6 +611,10 @@
                     'tagline': 'Sustainable Information System',
                     'search-placeholder': 'Search for articles or specialists...',
                     'tooltip': 'How can I help you today?',
+                    'inline-chat-placeholder': 'Type a message...',
+                    'inline-chat-welcome': 'How can I help you today?',
+                    'close-chat': 'Close chat',
+                    'send-message': 'Send message',
                     'que-es-title': 'Understand OLASIS-OLACEFS',
                     'what-is-header': 'What is the Smart Search?',
                     'what-is-1': 'A tool to find relevant information on green infrastructure auditing in OLACEFS.',
@@ -692,6 +641,10 @@
                     'tagline': 'Sistema de Informação Sustentável',
                     'search-placeholder': 'Buscar por artigos ou especialistas...',
                     'tooltip': 'Como posso te ajudar hoje?',
+                    'inline-chat-placeholder': 'Digite uma mensagem...',
+                    'inline-chat-welcome': 'Como posso te ajudar hoje?',
+                    'close-chat': 'Fechar chat',
+                    'send-message': 'Enviar mensagem',
                     'que-es-title': 'Entenda o OLASIS-OLACEFS',
                     'what-is-header': 'O que é o Buscador Inteligente?',
                     'what-is-1': 'Uma ferramenta para encontrar informações relevantes sobre auditoria de infraestrutura verde na OLACEFS.',
@@ -715,6 +668,7 @@
             const langButtons = document.querySelectorAll('.language-switcher .lang-btn');
             const searchInput = document.getElementById('search-input');
             const elementsToTranslate = document.querySelectorAll('[data-key]');
+            const titleElements = document.querySelectorAll('[data-title-key]');
             let currentLanguage = 'es'; // Default language
             
             function setLanguage(lang) {
@@ -730,6 +684,13 @@
                         } else {
                             element.textContent = translations[lang][key];
                         }
+                    }
+                });
+            
+                titleElements.forEach(element => {
+                    const key = element.getAttribute('data-title-key');
+                    if (translations[lang][key]) {
+                        element.title = translations[lang][key];
                     }
                 });
                 
@@ -797,107 +758,10 @@
             const inlineChatForm = document.getElementById('inline-chat-form');
             const inlineChatInput = inlineChatForm.querySelector('input');
             const inlineChatMessages = inlineChatWindow.querySelector('.inline-chat-messages');
-            
-            // --- Sistema de Sugestões de Perguntas ---
-            const chatSuggestions = document.getElementById('chat-suggestions');
-            const suggestionsContainer = document.getElementById('suggestions-container');
-            let suggestionsLoaded = false;
-            
-            async function loadChatSuggestions() {
-                if (suggestionsLoaded) return;
-                
-                try {
-                    const response = await fetch('/api/chat/suggestions?context=general&limit=4');
-                    const data = await response.json();
-                    
-                    if (data.suggestions && data.suggestions.length > 0) {
-                        displaySuggestions(data.suggestions);
-                        suggestionsLoaded = true;
-                    }
-                } catch (error) {
-                    console.warn('Erro ao carregar sugestões:', error);
-                    // Fallback com sugestões estáticas
-                    displaySuggestions([
-                        "O que é inteligência artificial?",
-                        "Como fazer uma pesquisa científica?",
-                        "Onde encontrar artigos acadêmicos?",
-                        "Como avaliar fontes científicas?"
-                    ]);
-                    suggestionsLoaded = true;
-                }
-            }
-            
-            function displaySuggestions(suggestions) {
-                suggestionsContainer.innerHTML = '';
-                
-                suggestions.forEach((suggestion, index) => {
-                    const suggestionBubble = document.createElement('button');
-                    suggestionBubble.className = 'suggestion-bubble';
-                    suggestionBubble.textContent = suggestion;
-                    suggestionBubble.style.animationDelay = (index * 0.1) + 's';
-                    
-                    suggestionBubble.addEventListener('click', () => {
-                        handleSuggestionClick(suggestion);
-                    });
-                    
-                    suggestionsContainer.appendChild(suggestionBubble);
-                });
-            }
-            
-            function handleSuggestionClick(suggestion) {
-                // Adicionar sugestão como mensagem do usuário
-                appendInlineMessage(suggestion, 'user');
-                
-                // Ocultar sugestões com animação
-                chatSuggestions.classList.add('suggestions-fade-out');
-                setTimeout(() => {
-                    chatSuggestions.style.display = 'none';
-                }, 300);
-                
-                // Simular digitação do bot
-                setTimeout(() => {
-                    sendMessageToBot(suggestion);
-                }, 500);
-            }
-            
-            async function sendMessageToBot(message) {
-                try {
-                    // Indicador de digitação
-                    const typingBubble = document.createElement('div');
-                    typingBubble.className = 'chat-bubble bot typing';
-                    typingBubble.innerHTML = '<span>•</span><span>•</span><span>•</span>';
-                    inlineChatMessages.appendChild(typingBubble);
-                    inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
-                    
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ message: message, lang: currentLanguage })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    // Remover indicador de digitação
-                    typingBubble.remove();
-                    
-                    if (data.response) {
-                        appendInlineMessage(data.response, 'bot');
-                    } else {
-                        appendInlineMessage('Desculpe, não consegui processar sua pergunta no momento.', 'bot');
-                    }
-                } catch (error) {
-                    console.error('Erro ao enviar mensagem:', error);
-                    // Remover indicador de digitação se existir
-                    const typingBubble = inlineChatMessages.querySelector('.typing');
-                    if (typingBubble) typingBubble.remove();
-                    
-                    appendInlineMessage('Para uma experiência completa de chat, clique em "OLABOT" no canto superior esquerdo da página.', 'bot');
-                }
-            }
+            const inlineChatWelcome = inlineChatMessages.querySelector('.inline-chat-welcome');
             
             function appendInlineMessage(text, type) {
+                if (inlineChatWelcome) inlineChatWelcome.style.display = 'none';
                 const bubble = document.createElement('div');
                 bubble.className = 'chat-bubble ' + type;
                 bubble.textContent = text;
@@ -912,18 +776,13 @@
                 appendInlineMessage(userMessage, 'user');
                 inlineChatInput.value = '';
                 setTimeout(() => {
-                    appendInlineMessage('¡Hola! Soy OLABOT, tu asistente especializado en investigación científica. Para una experiencia completa de chat, haz clic en "OLABOT" en la esquina superior izquierda de la página. Allí podrás conversar conmigo sin límites y obtener respuestas más detalladas sobre cualquier tema académico.', 'bot');
+                appendInlineMessage(translations[currentLanguage]['olabot-inline-message'], 'bot');
                 }, 800);
             });
             
             function toggleChat(show) {
                 inlineChatWindow.classList.toggle('show', show);
                 olabotInlineContainer.classList.toggle('chat-open', show);
-                
-                // Carregar sugestões quando o chat for aberto
-                if (show) {
-                    loadChatSuggestions();
-                }
             }
 
             olabotInlineBtn.addEventListener('click', (e) => { 
