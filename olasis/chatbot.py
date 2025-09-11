@@ -158,7 +158,7 @@ class Chatbot:
 
         except Exception as exc:
             logger.error("Gemini API call failed: %s", exc)
-           api_error = {
+            api_error = {
                 "en": "[Sorry, I couldn't generate a response due to an API error.]",
                 "es": "[Lo siento, no pude generar una respuesta debido a un error en la API.]",
                 "pt": "[Desculpe, não consegui gerar uma resposta por causa de um erro na API.]",
