@@ -260,13 +260,4 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
   }
-
-  // Ensure counters reflect correct pluralisation
-  const articlesCounterEl = document.getElementById('articles-counter');
-  const specialistsCounterEl = document.getElementById('specialists-counter');
-  function updateCountersSuffix() {
-    if (articlesCounterEl && /\bartículos\b/.test(articlesCounterEl.textContent)) { }
-    if (specialistsCounterEl && /\bespecialistas\b/.test(specialistsCounterEl.textContent)) { }
-  }
-  setInterval(updateCountersSuffix, 5000);
 });
