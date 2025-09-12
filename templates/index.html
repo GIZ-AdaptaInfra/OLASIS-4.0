@@ -388,7 +388,7 @@
         <div class="header-left">
             <a href="javascript:void(0)" onclick="openChatbotPage()" class="olabot-header-icon" data-title-key="open-olabot" title="Abrir OLABOT en una nueva pestaña">
                 <div class="olabot-icon-placeholder-header">
-                    <img src="https://i.ibb.co/20Jycz8Q/Olacita.png" alt="Ícone OLABOT">
+                    <img src="{{ url_for('static', filename='img/olabot-logo.png') }}" alt="Ícone OLABOT">
                 </div>
                 <span data-key="olabot">OLABOT</span>
             </a>
@@ -428,7 +428,7 @@
             <div class="olabot-inline-container">
                 <button id="olabot-inline-btn">
                     <div class="olabot-icon-placeholder-inline">
-                        <img src="https://i.ibb.co/20Jycz8Q/Olacita.png" alt="Ícone OLABOT Chat">
+                        <img src="{{ url_for('static', filename='img/olabot-logo.png') }}" alt="Ícone OLABOT Chat">
                     </div>
                 </button>
                 <div class="tooltip" data-key="tooltip">¿Cómo puedo ayudarte hoy?</div>
@@ -541,7 +541,7 @@
         </section>
         <footer>
             <div class="logo-bar-container">
-                <img src="https://i.ibb.co/tpyTSFD2/Barra-de-Logos-em-Espanhol.png" alt="Barra de Logos" border="0" />
+            <img src="{{ url_for('static', filename='img/barra-logo.png') }}" alt="Barra Logo">
             </div>
             <p>© 2025 OLASIS. Todos los derechos reservados.</p>
         </footer>
@@ -777,27 +777,6 @@
             const inlineChatForm = document.getElementById('inline-chat-form');
             const inlineChatInput = inlineChatForm.querySelector('input');
             const inlineChatMessages = inlineChatWindow.querySelector('.inline-chat-messages');
-            const inlineChatWelcome = inlineChatMessages.querySelector('.inline-chat-welcome');
-            
-            function appendInlineMessage(text, type) {
-                if (inlineChatWelcome) inlineChatWelcome.style.display = 'none';
-                const bubble = document.createElement('div');
-                bubble.className = 'chat-bubble ' + type;
-                bubble.textContent = text;
-                inlineChatMessages.appendChild(bubble);
-                inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
-            }
-
-            inlineChatForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const userMessage = inlineChatInput.value.trim();
-                if (!userMessage) return;
-                appendInlineMessage(userMessage, 'user');
-                inlineChatInput.value = '';
-                setTimeout(() => {
-                appendInlineMessage(translations[currentLanguage]['olabot-inline-message'], 'bot');
-                }, 800);
-            });
             
             function toggleChat(show) {
                 inlineChatWindow.classList.toggle('show', show);
@@ -957,11 +936,13 @@
             </div>
         </div>
         <script>
-            const form = document.getElementById('chat-input-form'); 
-            const input = document.getElementById('chat-input'); 
-            const messagesContainer = document.getElementById('chat-messages'); 
-            const initialMessage = document.querySelector('.initial-message'); 
+            const form = document.getElementById('chat-input-form');
+            const input = document.getElementById('chat-input');
+            const messagesContainer = document.getElementById('chat-messages');
+            const initialMessage = document.querySelector('.initial-message');
             const typingIndicator = document.getElementById('typing-indicator-separate');
+            const currentLang = '${savedLang}';
+            let firstMessage = true;
 
             async function sendMessage(message) {
                 if(initialMessage) initialMessage.style.display = 'none';
@@ -969,10 +950,12 @@
                 typingIndicator.style.display = 'flex';
                 
                 try {
+                     const payload = { message: message, lang: currentLang };
+                    if (firstMessage) { payload.reset = true; firstMessage = false; }
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: message }) 
+                        body: JSON.stringify(payload) 
                     });
                     const data = await response.json();
                     const botResponse = data.response || data.message || '${t.error}';

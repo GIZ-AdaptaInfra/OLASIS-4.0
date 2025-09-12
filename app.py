@@ -112,12 +112,13 @@ def api_chat():
     try:
         data = request.get_json() or {}
         message = data.get("message", "").strip()
-        lang = data.get("lang", "es")  # default espanhol
+        lang = data.get("lang")  # permitir detecção automática
+        reset = bool(data.get("reset"))
 
         if not message:
             return jsonify({"response": "Por favor, envie uma mensagem válida."}), 400
 
-        reply = olabot.ask(message, lang=lang)
+        reply = olabot.ask(message, lang=lang, reset=reset)
 
         return jsonify({
             "response": reply,

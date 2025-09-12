@@ -101,6 +101,25 @@ class ResponseOptimizer:
             )
         return response
 
+class ChatSuggestions:
+    """Funções utilitárias para fornecer sugestões ao usuário."""
+
+    @staticmethod
+    def get_contextual_suggestions(context: str, count: int) -> List[str]:
+        """Retorna sugestões genéricas baseadas no contexto."""
+        return [f"{context} suggestion {i+1}" for i in range(count)]
+
+    @staticmethod
+    def get_suggestions_by_field(field: str, count: int) -> List[str]:
+        """Retorna sugestões específicas de um campo."""
+        return [f"{field} suggestion {i+1}" for i in range(count)]
+
+    @staticmethod
+    def get_adaptive_suggestions(history: List[str], count: int) -> List[str]:
+        """Gera sugestões com base no histórico da conversa."""
+        last = history[-1] if history else "general"
+        return [f"{last} follow-up {i+1}" for i in range(count)]
+
 
 BEST_PRACTICES_CONFIG = {
     "max_response_length": 4000,
