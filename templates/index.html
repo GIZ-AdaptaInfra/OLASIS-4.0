@@ -997,10 +997,10 @@
                 typingIndicator.style.display = 'flex';
                 
                 try {
-                    const response = await fetch('/api/chat', { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ message: message }) 
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message, lang: '${savedLang}' }) 
                     });
                     const data = await response.json();
                     const botResponse = data.response || data.message || '${t.error}';
