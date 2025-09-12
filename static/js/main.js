@@ -196,6 +196,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const inlineChatForm = document.getElementById('inline-chat-form');
   const inlineChatInput = inlineChatForm ? inlineChatForm.querySelector('input') : null;
   const inlineChatMessages = document.querySelector('.inline-chat-messages');
+  const inlineChatWelcome = inlineChatMessages ? inlineChatMessages.querySelector('.inline-chat-welcome') : null;
+  const inlineChatWindow = document.getElementById('inline-chat-window');
+  const inlineChatBtn = document.getElementById('olabot-inline-btn');
+  let inlineFirstMessage = true;
+
+  if (inlineChatBtn && inlineChatWindow) {
+    inlineChatBtn.addEventListener('click', () => {
+      if (!inlineChatWindow.classList.contains('show')) {
+        inlineFirstMessage = true;
+      }
+    });
+  }
 
   if (inlineChatForm && inlineChatInput && inlineChatMessages) {
     inlineChatForm.onsubmit = async (e) => {
@@ -213,7 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
         pt: { error: "Desculpe, ocorreu um erro." }
       };
 
+            const suggestions = {
+        es: 'Para una experiencia completa de chat, haz clic en "OLABOT" en la esquina superior izquierda.',
+        en: 'For a full chat experience, click on "OLABOT" in the top left corner.',
+        pt: 'Para uma experiência completa de chat, clique em "OLABOT" no canto superior esquerdo.'
+      };
+
       // Append user bubble
+      if (inlineChatWelcome) inlineChatWelcome.style.display = 'none';
       const userBubble = document.createElement('div');
       userBubble.className = 'chat-bubble user';
       userBubble.textContent = userMessage;
@@ -222,10 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
       inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
 
       try {
+        const payload = { message: userMessage, lang: currentLang };
+        if (inlineFirstMessage) {
+          payload.reset = true;
+          inlineFirstMessage = false;
+        }
         const resp = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMessage, lang: currentLang }),
+          body: JSON.stringify(payload),
         });
 
         const data = await resp.json();
@@ -247,7 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const botBubble = document.createElement('div');
         botBubble.className = 'chat-bubble bot';
-        botBubble.textContent = plainText;
+        const recommendation = suggestions[currentLang] || suggestions.es;
+        botBubble.textContent = `${plainText}\n\n${recommendation}`;
         inlineChatMessages.appendChild(botBubble);
         inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
 

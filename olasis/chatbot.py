@@ -4,7 +4,8 @@ OLABOT - Chatbot Inteligente para Pesquisa Científica
 
 Versão otimizada:
 - Primeira resposta: intro curta do OLABOT
-- Respostas seguintes: explicações moderadas (2–4 parágrafos), claras e embasadas
+- Respostas seguintes: explicações moderadas (2–4 parágrafos), claras e embasadas,
+  com contexto científico ou boas práticas em controle externo quando pertinente
 """
 
 from __future__ import annotations
@@ -16,6 +17,11 @@ try:
     from google import genai  # type: ignore
 except Exception:
     genai = None
+
+try:
+    from langdetect import detect  # type: ignore
+except Exception:
+    detect = None
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +50,7 @@ class Chatbot:
 
         self._client = None
         self._history: List[str] = []
-        self.first_answer: bool = True  # <-- controla intro inicial
+        self._first_answer: bool = True  # <-- controla intro inicial
 
         if genai is None:
             logger.warning("google-genai library is not installed; Chatbot will be disabled.")
@@ -69,21 +75,49 @@ class Chatbot:
             "prompt_engineering": self.enable_prompt_engineering,
         }
 
+    @property
+    def first_answer(self) -> bool:
+        """Compatibilidade para código legado que usa `first_answer` sem underscore."""
+        return self._first_answer
+
+    @first_answer.setter
+    def first_answer(self, value: bool) -> None:
+        self._first_answer = bool(value)
+
     # ------------------------------
     # Chamada principal
     # ------------------------------
     def ask(
         self,
         question: str,
-        lang: str = "es",
+        lang: str | None = None,
         context_type: str | None = None,
         conversation_history: Optional[List[str]] = None,
         user_profile: Optional[Dict] = None,
+        reset: bool = False,
         **kwargs,
     ) -> str:
+        if reset:
+            self._first_answer = True
+            self._history.clear()
+
         self._history.append(question)
 
-        lang = (lang or "es").lower()
+        lang = (lang or "").lower()
+        if lang not in ("en", "es", "pt"):
+            if detect is not None:
+                try:
+                    guess = detect(question)
+                    if guess.startswith("pt"):
+                        lang = "pt"
+                    elif guess.startswith("en"):
+                        lang = "en"
+                    else:
+                        lang = "es"
+                except Exception:
+                    lang = "es"
+            else:
+                lang = "es"
         
         if self._client is None:
             unavailable = {
@@ -117,23 +151,26 @@ class Chatbot:
                 "en": (
                     "You are OLABOT, a research assistant for OLASIS 4.0. "
                     "Answer the user's question directly in a clear, detailed way, but limit the answer to 2 to 4 paragraphs. "
-                    "Provide scientific or historical context when relevant and avoid overly long responses. Respond in English."
+                    "Provide scientific context or best practices in external oversight when relevant and avoid overly long responses. Respond in English."
                 ),
                 "es": (
                     "Eres OLABOT, asistente especializado en investigación científica del OLASIS 4.0. "
                     "Responde directamente a la pregunta del usuario de forma clara y detallada, "
-                    "pero limita la respuesta a 2 a 4 párrafos como máximo. Proporciona contexto científico o histórico cuando sea pertinente y evita respuestas demasiado largas. Responde en español."
+                    "pero limita la respuesta a 2 a 4 párrafos como máximo. Proporciona contexto científico o buenas prácticas en control externo cuando sea pertinente y evita respuestas demasiado largas. Responde en español."
                 ),
                 "pt": (
                     "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
                     "Responda diretamente à pergunta do usuário de forma clara, detalhada e embasada, "
-                    "mas limite a resposta a 2 a 4 parágrafos no máximo. Forneça contexto científico ou histórico quando relevante e evite respostas excessivamente longas. Responda em português."
+                    "mas limite a resposta a 2 a 4 parágrafos no máximo. Forneça contexto científico ou boas práticas em controle externo quando fizer sentido e evite respostas excessivamente longas. Responda em português."
                 ),
             }
 
             user_labels = {"en": "User", "es": "Usuario", "pt": "Usuário"}
 
-            system_rules = (intro_prompts if self.first_answer else follow_prompts).get(lang, intro_prompts["es"] if self.first_answer else follow_prompts["es"])
+            system_rules = (intro_prompts if self._first_answer else follow_prompts).get(
+                lang,
+                intro_prompts["es"] if self._first_answer else follow_prompts["es"],
+            )
             user_label = user_labels.get(lang, "Usuario")
 
             full_prompt = f"{system_rules}\n\n{user_label}: {question}"
@@ -151,8 +188,8 @@ class Chatbot:
             answer_raw = getattr(resp, "text", str(resp))
             processed = self._postprocess(answer_raw)
 
-            if self.first_answer:
-                self.first_answer = False
+            if self._first_answer:
+                self._first_answer = False
 
             return processed
 
