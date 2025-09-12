@@ -302,6 +302,7 @@
             background: white; padding: 2rem; border-radius: 8px;
             width: 90%; max-width: 600px; text-align: left;
         }
+        .cookie-modal-content .language-switcher { justify-content: center; margin-bottom: 1rem; }
         .cookie-modal-content h2 { font-family: var(--font-main); font-size: 1.5rem; color: var(--color-ola); margin-bottom: 1rem; }
         .cookie-modal-content p { line-height: 1.6; margin-bottom: 1.5rem; font-size: 1rem; }
         .cookie-modal-content p a { color: var(--color-sis); text-decoration: underline; cursor: pointer; }
@@ -548,6 +549,11 @@
 
     <div id="cookie-modal-overlay" class="cookie-modal-overlay">
         <div class="cookie-modal-content">
+            <div class="language-switcher">
+                <button class="lang-btn" data-lang="es">ES</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="pt">PT</button>
+            </div>
             <h2 data-key="cookie-title">Configuración de la Protección de Datos</h2>
             <p data-key="cookie-message">Este sitio web utiliza medios externos, como vídeos, y una herramienta de análisis propia que puede utilizarse para recopilar datos sobre su comportamiento. También se utilizan cookies en este proceso. Usted puede ajustar o revocar su consentimiento para el uso de cookies y extensiones en cualquier momento.</p>
             <div class="cookie-modal-buttons">
