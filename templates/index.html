@@ -189,8 +189,14 @@
         .results-header { display: flex; align-items: center; gap: 2rem; padding: 0.5rem 0; border-bottom: 1px solid var(--color-gray-medium); position: sticky; top: 0; background: #fff; z-index: 999; }
         .results-logo { font-family: var(--font-logo); font-weight: 600; font-size: 2rem; color: var(--color-ola); cursor: pointer; text-decoration: none; }
         .results-logo span { color: var(--color-sis); }
-        .results-search-form { flex-grow: 1; max-width: 800px; }
-        #results-search-input { width: 100%; padding: 0.9rem 1.5rem; font-size: 1rem; border: 1px solid #dfe1e5; border-radius: 25px; }
+        .results-back-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0.4rem; border-radius: 999px; color: var(--color-ola); transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease; }
+        .results-back-btn:hover,
+        .results-back-btn:focus-visible { background: rgba(0, 79, 165, 0.12); color: var(--color-active-link); outline: none; transform: translateX(-2px); }
+        .results-back-btn svg { width: 22px; height: 22px; }
+        .results-search-form { flex-grow: 1; max-width: 800px; position: relative; display: flex; }
+        #results-search-input { width: 100%; padding: 0.9rem 3.25rem 0.9rem 1.5rem; font-size: 1rem; border: 1px solid #dfe1e5; border-radius: 25px; }
+        .results-search-button { right: 12px; padding: 0.35rem; }
+        .results-search-button svg { width: 18px; height: 18px; }
         .filters-container { padding: 1.5rem 0; display: flex; gap: 1rem; }
         .filter-btn { padding: 0.6rem 1.5rem; background: var(--color-gray-medium); border: none; border-radius: 20px; cursor: pointer; transition: all 0.3s; }
         .filter-btn.active { background: var(--color-sis); color: white; box-shadow: 0 2px 8px rgba(0, 114, 187, 0.4); }
@@ -452,9 +458,19 @@
     
     <div id="results-page" class="hidden">
         <header class="results-header">
+            <button type="button" class="results-back-btn" onclick="goHome()" data-title-key="back-home-title" title="Volver a la página principal">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M10.5 19.5L3 12l7.5-7.5" />
+                    <path d="M3 12h18" />
+                </svg>
+                <span class="visually-hidden" data-key="back-home-text">Volver al inicio</span>
+            </button>
             <a href="javascript:goHome()" class="logo results-logo" title="Volver a la página principal">OLA<span class="logo-highlight">SIS</span></a>
             <form class="results-search-form" id="results-form">
                 <input type="search" id="results-search-input" placeholder="Buscar de novo...">
+                <button type="submit" class="search-button results-search-button" title="Buscar" aria-label="Buscar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
             </form>
         </header>
         <div class="filters-container">
@@ -582,6 +598,8 @@
                     'tooltip': '¿Cómo puedo ayudarte hoy?',
                     'inline-chat-placeholder': 'Escribe un mensaje...',
                     'inline-chat-welcome': '¿Cómo puedo ayudarte hoy?',
+                    'back-home-title': 'Volver a la página principal',
+                    'back-home-text': 'Volver al inicio',
                     'close-chat': 'Cerrar chat',
                     'send-message': 'Enviar mensaje',
                     'que-es-title': 'Entienda el OLASIS-OLACEFS',
@@ -619,6 +637,8 @@
                     'tooltip': 'How can I help you today?',
                     'inline-chat-placeholder': 'Type a message...',
                     'inline-chat-welcome': 'How can I help you today?',
+                    'back-home-title': 'Return to the home page',
+                    'back-home-text': 'Back to home',
                     'close-chat': 'Close chat',
                     'send-message': 'Send message',
                     'que-es-title': 'Understand OLASIS-OLACEFS',
@@ -656,6 +676,8 @@
                     'tooltip': 'Como posso te ajudar hoje?',
                     'inline-chat-placeholder': 'Digite uma mensagem...',
                     'inline-chat-welcome': 'Como posso te ajudar hoje?',
+                    'back-home-title': 'Voltar para a página inicial',
+                    'back-home-text': 'Voltar para o início',
                     'close-chat': 'Fechar chat',
                     'send-message': 'Enviar mensagem',
                     'que-es-title': 'Entenda o OLASIS-OLACEFS',

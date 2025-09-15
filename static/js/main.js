@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
   const articlesGrid = document.querySelector('#articles-results .results-grid');
   const specialistsGrid = document.querySelector('#specialists-results .results-grid');
+  const resultsForm = document.getElementById('results-form');
+  const resultsSearchInput = document.getElementById('results-search-input');
   
   // Pagination state
   let currentSearchQuery = '';
@@ -187,6 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
     searchForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const query = searchInput.value.trim();
+      currentPage = 1;
+      await performSearch(query, currentPage);
+    });
+  }
+  if (resultsForm && resultsSearchInput) {
+    resultsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = resultsSearchInput.value.trim();
       currentPage = 1;
       await performSearch(query, currentPage);
     });
