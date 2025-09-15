@@ -50,6 +50,9 @@ class Chatbot:
 
         self._client = None
         self._history: List[str] = []
+        # Armazenar pares de mensagens (usuário/assistente) para manter contexto
+        # Estrutura: {"role": "user" | "assistant", "content": str, "lang": str}
+        self._conversation_log: List[Dict[str, str]] = []
         self._first_answer: bool = True  # <-- controla intro inicial
 
         if genai is None:
@@ -100,6 +103,7 @@ class Chatbot:
         if reset:
             self._first_answer = True
             self._history.clear()
+            self._conversation_log.clear()
 
         self._history.append(question)
 
@@ -166,6 +170,7 @@ class Chatbot:
             }
 
             user_labels = {"en": "User", "es": "Usuario", "pt": "Usuário"}
+            assistant_labels = {"en": "OLABOT", "es": "OLABOT", "pt": "OLABOT"}
 
             system_rules = (intro_prompts if self._first_answer else follow_prompts).get(
                 lang,
@@ -173,7 +178,28 @@ class Chatbot:
             )
             user_label = user_labels.get(lang, "Usuario")
 
-            full_prompt = f"{system_rules}\n\n{user_label}: {question}"
+            # Construir contexto da conversa (últimas 5 interações = 10 mensagens)
+            history_snippets: List[str] = []
+            max_messages = 10
+
+            if conversation_history:
+            # Histórico externo já vem formatado; usar últimas entradas
+                history_snippets.extend(conversation_history[-max_messages:])
+            else:
+                if self._conversation_log:
+                    for entry in self._conversation_log[-max_messages:]:
+                        entry_lang = (entry.get("lang") or lang) or "es"
+                        if entry.get("role") == "assistant":
+                            label = assistant_labels.get(entry_lang, assistant_labels["es"])
+                        else:
+                            label = user_labels.get(entry_lang, user_labels["es"])
+                        history_snippets.append(f"{label}: {entry.get('content', '')}")
+
+            if history_snippets:
+                history_text = "\n".join(history_snippets)
+                full_prompt = f"{system_rules}\n\n{history_text}\n{user_label}: {question}"
+            else:
+                full_prompt = f"{system_rules}\n\n{user_label}: {question}"
 
             resp = self._client.models.generate_content(
                 model=self.model,
@@ -190,6 +216,20 @@ class Chatbot:
 
             if self._first_answer:
                 self._first_answer = False
+                
+            # Atualizar histórico da conversa com a nova interação
+            self._conversation_log.append({
+                "role": "user",
+                "content": question,
+                "lang": lang,
+            })
+            self._conversation_log.append({
+                "role": "assistant",
+                "content": processed,
+                "lang": lang,
+            })
+            if len(self._conversation_log) > max_messages:
+                self._conversation_log = self._conversation_log[-max_messages:]
 
             return processed
 
