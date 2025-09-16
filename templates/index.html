@@ -469,7 +469,7 @@
     
     <div id="results-page" class="hidden">
         <header class="results-header">
-            <button type="button" class="results-back-btn" onclick="goHome()" data-title-key="back-home-title" title="Volver a la página principal">
+             <button type="button" class="results-back-btn" onclick="goHome()" data-title-key="back-home-title" title="Volver a la página principal" data-title-key="back-home-title">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                     <path d="M10.5 19.5L3 12l7.5-7.5" />
                     <path d="M3 12h18" />
@@ -478,53 +478,38 @@
             </button>
             <a href="javascript:goHome()" class="logo results-logo" title="Volver a la página principal">OLA<span class="logo-highlight">SIS</span></a>
             <form class="results-search-form" id="results-form">
-                <input type="search" id="results-search-input" placeholder="Buscar de novo...">
+                <input type="search" id="results-search-input" placeholder="Buscar de nuevo..." data-key="results-search-placeholder">
                 <button type="submit" class="search-button results-search-button" title="Buscar" aria-label="Buscar">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </button>
             </form>
         </header>
         <div class="filters-container">
-            <button class="filter-btn active" data-filter="all">Todo</button>
-            <button class="filter-btn" data-filter="articles">Artículos</button>
-            <button class="filter-btn" data-filter="specialists">Especialistas</button>
-            <button class="back-to-home-btn" onclick="goHome()" title="Voltar à página inicial">
+            <button class="filter-btn active" data-filter="all" data-key="filter-all">Todo</button>
+            <button class="filter-btn" data-filter="articles" data-key="filter-articles">Artículos</button>
+            <button class="filter-btn" data-filter="specialists" data-key="filter-specialists">Especialistas</button>
+            <button class="back-to-home-btn" onclick="goHome()" title="Volver a la página principal" data-title-key="back-home-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
-                Inicio
+                <span data-key="results-home-button">Inicio</span>
             </button>
         </div>
         <div class="results-content">
             <div class="results-column" id="articles-results">
-                <h2>Artículos</h2>
+                <h2 data-key="results-articles-title">Artículos</h2>
                 <div class="results-grid">
                     <div class="result-card"><h3>Auditoría de Infraestrutura Verde: Un Nuevo Paradigma</h3><p>Este documento explora los desafíos y oportunidades in a auditoría de projetos de infraestrutura sustentável...</p><footer>Fonte: OLACEFS Journal, 2024</footer></div>
                     <div class="result-card"><h3>Buenas Prácticas en la Fiscalización de Obras Públicas Verdes</h3><p>Análisis de casos de estudio de toda la región, destacando as metodologías mais eficazes...</p><footer>Fonte: Conferência Anual CCC, 2023</footer></div>
                 </div>
             </div>
             <div class="results-column" id="specialists-results">
-                <h2>Especialistas</h2>
+                <h2 data-key="results-specialists-title">Especialistas</h2>
                 <div class="results-grid">
                     <div class="result-card"><h3>Dra. Elena Sofia Torres</h3><p>Especialista en políticas públicas para la sostenibilidad y fiscalización ambiental. Vasta experiencia en proyectos con impacto regional.</p><p class="orcid">ORCID: 0000-0002-1825-0097</p><a href="#" class="contact-link">Contactar</a></div>
                     <div class="result-card"><h3>Dr. João Alvez Pereira</h3><p>Investigador principal en el área de materiales sostenibles para la construcción y su ciclo de vida.</p><p class="orcid">ORCID: 0000-0001-5109-3700</p><a href="#" class="contact-link">Contactar</a></div>
                 </div>
             </div>
-        </div>
-        <div class="pagination-controls">
-            <button class="pagination-btn" id="prev-page-btn" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/>
-                </svg>
-                Anterior
-            </button>
-            <span class="pagination-info" id="page-info">Página 1 de 10</span>
-            <button class="pagination-btn" id="next-page-btn">
-                Siguiente
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/>
-                </svg>
-            </button>
         </div>
     </div>
 
@@ -613,6 +598,13 @@
                     'back-home-text': 'Volver al inicio',
                     'close-chat': 'Cerrar chat',
                     'send-message': 'Enviar mensaje',
+                    'filter-all': 'Todo',
+                    'filter-articles': 'Artículos',
+                    'filter-specialists': 'Especialistas',
+                    'results-articles-title': 'Artículos',
+                    'results-specialists-title': 'Especialistas',
+                    'results-search-placeholder': 'Buscar de nuevo...',
+                    'results-home-button': 'Inicio',
                     'que-es-title': 'Entienda el OLASIS-OLACEFS',
                     'what-is-header': '¿Qué es el Buscador Inteligente?',
                     'what-is-1': 'Una herramienta para encontrar información relevante sobre auditoría de infraestructura verde en OLACEFS.',
@@ -652,6 +644,13 @@
                     'back-home-text': 'Back to home',
                     'close-chat': 'Close chat',
                     'send-message': 'Send message',
+                    'filter-all': 'All',
+                    'filter-articles': 'Articles',
+                    'filter-specialists': 'Specialists',
+                    'results-articles-title': 'Articles',
+                    'results-specialists-title': 'Specialists',
+                    'results-search-placeholder': 'Search again...',
+                    'results-home-button': 'Home',
                     'que-es-title': 'Understand OLASIS-OLACEFS',
                     'what-is-header': 'What is the Smart Search?',
                     'what-is-1': 'A tool to find relevant information on green infrastructure auditing in OLACEFS.',
@@ -691,6 +690,13 @@
                     'back-home-text': 'Voltar para o início',
                     'close-chat': 'Fechar chat',
                     'send-message': 'Enviar mensagem',
+                    'filter-all': 'Todos',
+                    'filter-articles': 'Artigos',
+                    'filter-specialists': 'Especialistas',
+                    'results-articles-title': 'Artigos',
+                    'results-specialists-title': 'Especialistas',
+                    'results-search-placeholder': 'Buscar novamente...',
+                    'results-home-button': 'Início',
                     'que-es-title': 'Entenda o OLASIS-OLACEFS',
                     'what-is-header': 'O que é o Buscador Inteligente?',
                     'what-is-1': 'Uma ferramenta para encontrar informações relevantes sobre auditoria de infraestrutura verde na OLACEFS.',
@@ -755,6 +761,9 @@
                 
                 localStorage.setItem('language', lang);
                 currentLanguage = lang; // Store current language
+                document.dispatchEvent(new CustomEvent('olasis-language-changed', {
+                    detail: { lang }
+                }));
             }
 
             langButtons.forEach(button => {
