@@ -9,9 +9,11 @@ Versão otimizada:
 """
 
 from __future__ import annotations
-import os
+
 import logging
-from typing import List, Optional, Dict
+import os
+import re
+from typing import Dict, List, Optional
 
 try:
     from google import genai  # type: ignore
@@ -136,18 +138,18 @@ class Chatbot:
             intro_prompts = {
                 "en": (
                     "You are OLABOT, a research assistant for OLASIS 4.0. "
-                    "In the first response, introduce yourself in ONE short paragraph, explain your role and availability. "
-                    "Respond in English."
+                    "In the first response, begin exactly with the sentence 'Hello! I am OLABOT, a research assistant for OLASIS 4.0.' "
+                    "Right after that sentence, answer the user's question succinctly and avoid repeating extra greetings. Respond in English."
                 ),
                 "es": (
                     "Eres OLABOT, asistente especializado en investigación científica del OLASIS 4.0. "
-                    "En la primera respuesta, preséntate en UN párrafo corto, explica tu función y disponibilidad. "
-                    "Responde en español."
+                    "En la primera respuesta, comienza exactamente con la frase '¡Hola! Soy OLABOT, asistente de investigación para OLASIS 4.0.'. "
+                    "Justo después de esa frase, responde a la pregunta del usuario sin repetir saludos adicionales. Responde en español."
                 ),
                 "pt": (
                     "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
-                    "Na primeira resposta, apresente-se em UM parágrafo curto, explique sua função e disponibilidade. "
-                      "Responda em português."
+                    "Na primeira resposta, comece exatamente com a frase 'Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica do OLASIS 4.0.'. "
+                    "Logo após essa frase, responda à pergunta do usuário de forma objetiva, sem repetir saudações adicionais. Responda em português."
                 ),
             }
 
@@ -155,17 +157,17 @@ class Chatbot:
                 "en": (
                     "You are OLABOT, a research assistant for OLASIS 4.0. "
                     "Answer the user's question directly in a clear, detailed way, but limit the answer to 2 to 4 paragraphs. "
-                    "Provide scientific context or best practices in external oversight when relevant and avoid overly long responses. Respond in English."
+                    "Provide scientific context or best practices in external oversight when relevant, avoid overly long responses, and do not begin with greetings—go straight to the content. Respond in English."
                 ),
                 "es": (
                     "Eres OLABOT, asistente especializado en investigación científica del OLASIS 4.0. "
                     "Responde directamente a la pregunta del usuario de forma clara y detallada, "
-                    "pero limita la respuesta a 2 a 4 párrafos como máximo. Proporciona contexto científico o buenas prácticas en control externo cuando sea pertinente y evita respuestas demasiado largas. Responde en español."
+                    "pero limita la respuesta a 2 a 4 párrafos como máximo. Proporciona contexto científico o buenas prácticas en control externo cuando sea pertinente, evita respuestas demasiado largas y no comiences con saludos; ve directo al contenido. Responde en español."
                 ),
                 "pt": (
                     "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
                     "Responda diretamente à pergunta do usuário de forma clara, detalhada e embasada, "
-                    "mas limite a resposta a 2 a 4 parágrafos no máximo. Forneça contexto científico ou boas práticas em controle externo quando fizer sentido e evite respostas excessivamente longas. Responda em português."
+                    "mas limite a resposta a 2 a 4 parágrafos no máximo. Forneça contexto científico ou boas práticas em controle externo quando fizer sentido, evite respostas excessivamente longas e não inicie com saudações; vá direto ao conteúdo. Responda em português."
                 ),
             }
 
@@ -214,6 +216,9 @@ class Chatbot:
             answer_raw = getattr(resp, "text", str(resp))
             processed = self._postprocess(answer_raw)
 
+            was_first_answer = self._first_answer
+            processed = self._enforce_greeting_rules(processed, lang, was_first_answer)
+
             if self._first_answer:
                 self._first_answer = False
                 
@@ -247,6 +252,61 @@ class Chatbot:
     # ------------------------------
     def _postprocess(self, raw_answer: str) -> str:
         return (raw_answer or "").strip()
+
+            def _enforce_greeting_rules(self, text: str, lang: str, is_first_answer: bool) -> str:
+        """Standardise greeting behaviour for the supported languages."""
+
+        greeting_configs = {
+            "en": {
+                "intro": "Hello! I am OLABOT, a research assistant for OLASIS 4.0.",
+                "pattern": re.compile(
+                    r"^(?P<greeting>(hello|hi|greetings|good\s+(morning|afternoon|evening|day))[!,.:\-]*\s+)",
+                    re.IGNORECASE,
+                ),
+            },
+            "es": {
+                "intro": "¡Hola! Soy OLABOT, asistente de investigación para OLASIS 4.0.",
+                "pattern": re.compile(
+                    r"^(?P<greeting>(hola|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches)[!,.:\-]*\s+)",
+                    re.IGNORECASE,
+                ),
+            },
+            "pt": {
+                "intro": "Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica do OLASIS 4.0.",
+                "pattern": re.compile(
+                    r"^(?P<greeting>(olá|oi|saudações|bom\s+dia|boa\s+tarde|boa\s+noite)[!,.:\-]*\s+)",
+                    re.IGNORECASE,
+                ),
+            },
+        }
+
+        cleaned = text.strip()
+        config = greeting_configs.get(lang)
+
+        if not config:
+            return cleaned
+
+        intro = config["intro"]
+        if is_first_answer:
+            if cleaned.startswith(intro):
+                return cleaned
+
+            if intro in cleaned:
+                remainder = cleaned.split(intro, 1)[1]
+                return f"{intro}{remainder}"
+
+            separator = " " if cleaned and not cleaned.startswith(('.', ',', ';', ':', '!', '?')) else ""
+            return f"{intro}{separator}{cleaned}".strip()
+
+        pattern = config["pattern"]
+        result = cleaned
+        while True:
+            match = pattern.match(result)
+            if not match:
+                break
+            result = result[match.end():].lstrip()
+
+        return result or cleaned
 
     # ------------------------------
     # Estatísticas de sessão
