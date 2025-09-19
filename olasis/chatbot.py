@@ -3,7 +3,7 @@ OLABOT - Chatbot Inteligente para Pesquisa Científica
 ====================================================
 
 Versão otimizada:
-- Primeira resposta: intro curta do OLABOT
+- Primeira resposta: saudação curta ("Olá! Como vai?", "Hello! How are you?", "¡Hola! ¿Cómo estás?")
 - Respostas seguintes: explicações moderadas (2–4 parágrafos), claras e embasadas,
   com contexto científico ou boas práticas em controle externo quando pertinente
 """
@@ -138,17 +138,17 @@ class Chatbot:
             intro_prompts = {
                 "en": (
                     "You are OLABOT, a research assistant for OLASIS 4.0. "
-                    "In the first response, begin exactly with the sentence 'Hello! I am OLABOT, a research assistant for OLASIS 4.0.' "
+                    "In the first response, begin exactly with the sentence 'Hello! How are you?'. "
                     "Right after that sentence, answer the user's question succinctly and avoid repeating extra greetings. Respond in English."
                 ),
                 "es": (
                     "Eres OLABOT, asistente especializado en investigación científica del OLASIS 4.0. "
-                    "En la primera respuesta, comienza exactamente con la frase '¡Hola! Soy OLABOT, asistente de investigación para OLASIS 4.0.'. "
+                    "En la primera respuesta, comienza exactamente con la frase '¡Hola! ¿Cómo estás?'. "
                     "Justo después de esa frase, responde a la pregunta del usuario sin repetir saludos adicionales. Responde en español."
                 ),
                 "pt": (
                     "Você é o OLABOT, assistente especializado em pesquisa científica do OLASIS 4.0. "
-                    "Na primeira resposta, comece exatamente com a frase 'Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica do OLASIS 4.0.'. "
+                    "Na primeira resposta, comece exatamente com a frase 'Olá! Como vai?'. "
                     "Logo após essa frase, responda à pergunta do usuário de forma objetiva, sem repetir saudações adicionais. Responda em português."
                 ),
             }
@@ -253,26 +253,38 @@ class Chatbot:
     def _postprocess(self, raw_answer: str) -> str:
         return (raw_answer or "").strip()
 
-            def _enforce_greeting_rules(self, text: str, lang: str, is_first_answer: bool) -> str:
+    def _enforce_greeting_rules(self, text: str, lang: str, is_first_answer: bool) -> str:
         """Standardise greeting behaviour for the supported languages."""
 
         greeting_configs = {
             "en": {
-                "intro": "Hello! I am OLABOT, a research assistant for OLASIS 4.0.",
+                "intro": "Hello! How are you?",
+                "legacy_intros": [
+                    "Hello! I am OLABOT, a research assistant for OLASIS 4.0.",
+                    "Hello! I'm OLABOT, the virtual assistant for the OLASIS platform.",
+                ],
                 "pattern": re.compile(
                     r"^(?P<greeting>(hello|hi|greetings|good\s+(morning|afternoon|evening|day))[!,.:\-]*\s+)",
                     re.IGNORECASE,
                 ),
             },
             "es": {
-                "intro": "¡Hola! Soy OLABOT, asistente de investigación para OLASIS 4.0.",
+                "intro": "¡Hola! ¿Cómo estás?",
+                "legacy_intros": [
+                    "¡Hola! Soy OLABOT, asistente de investigación para OLASIS 4.0.",
+                    "¡Hola! Soy OLABOT, la asistente virtual de la plataforma OLASIS.",
+                ],
                 "pattern": re.compile(
                     r"^(?P<greeting>(hola|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches)[!,.:\-]*\s+)",
                     re.IGNORECASE,
                 ),
             },
             "pt": {
-                "intro": "Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica do OLASIS 4.0.",
+                "intro": "Olá! Como vai?",
+                "legacy_intros": [
+                    "Olá! Eu sou o OLABOT, seu assistente especializado em pesquisa científica do OLASIS 4.0.",
+                    "Olá! Sou a OLABOT, a assistente virtual da plataforma OLASIS.",
+                ],
                 "pattern": re.compile(
                     r"^(?P<greeting>(olá|oi|saudações|bom\s+dia|boa\s+tarde|boa\s+noite)[!,.:\-]*\s+)",
                     re.IGNORECASE,
@@ -286,16 +298,29 @@ class Chatbot:
         if not config:
             return cleaned
 
+        legacy_intros = config.get("legacy_intros", [])
+        for legacy_intro in legacy_intros:
+            if not legacy_intro:
+                continue
+            if cleaned.startswith(legacy_intro):
+                cleaned = cleaned[len(legacy_intro):].lstrip()
+            elif legacy_intro in cleaned:
+                cleaned = cleaned.replace(legacy_intro, " ").strip()
+
         intro = config["intro"]
         if is_first_answer:
             if cleaned.startswith(intro):
                 return cleaned
 
             if intro in cleaned:
-                remainder = cleaned.split(intro, 1)[1]
-                return f"{intro}{remainder}"
+                _, remainder = cleaned.split(intro, 1)
+                combined = f"{intro}{remainder}".strip()
+                return combined or intro
 
-            separator = " " if cleaned and not cleaned.startswith(('.', ',', ';', ':', '!', '?')) else ""
+            if not cleaned:
+                return intro
+
+            separator = " " if not cleaned.startswith(('.', ',', ';', ':', '!', '?')) else ""
             return f"{intro}{separator}{cleaned}".strip()
 
         pattern = config["pattern"]
@@ -305,6 +330,10 @@ class Chatbot:
             if not match:
                 break
             result = result[match.end():].lstrip()
+
+        if result.startswith(intro):
+            result = result[len(intro):].lstrip()
+
 
         return result or cleaned
 

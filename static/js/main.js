@@ -300,6 +300,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const inlineChatBtn = document.getElementById('olabot-inline-btn');
   let inlineFirstMessage = true;
 
+    const normalizeGreeting = (text) =>
+    (text || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[!?.¡¿]/g, '')
+      .trim();
+
+  const greetingRules = [
+    { triggers: ['hola'], response: '¡Hola! ¿Cómo estás?' },
+    { triggers: ['ola'], response: 'Olá! Como vai?' },
+    { triggers: ['hello'], response: 'Hello! How are you?' },
+  ];
+
+  const findGreetingResponse = (message) => {
+    const normalized = normalizeGreeting(message);
+    if (!normalized) return null;
+    return greetingRules.find((rule) => rule.triggers.includes(normalized)) || null;
+  };
+
   if (inlineChatBtn && inlineChatWindow) {
     inlineChatBtn.addEventListener('click', () => {
       if (!inlineChatWindow.classList.contains('show')) {
@@ -339,6 +359,16 @@ document.addEventListener('DOMContentLoaded', () => {
       inlineChatInput.value = '';
       inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
 
+      const greetingMatch = findGreetingResponse(userMessage);
+      if (greetingMatch) {
+        const botBubble = document.createElement('div');
+        botBubble.className = 'chat-bubble bot';
+        botBubble.textContent = greetingMatch.response;
+        inlineChatMessages.appendChild(botBubble);
+        inlineChatMessages.scrollTop = inlineChatMessages.scrollHeight;
+        return;
+      }
+      
       try {
         const payload = { message: userMessage, lang: currentLang };
         if (inlineFirstMessage) {
