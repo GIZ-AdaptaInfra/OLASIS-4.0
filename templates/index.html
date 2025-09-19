@@ -25,7 +25,10 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+            font-size: 20px;
+        }
         body {
             font-family: var(--font-main);
             background-color: var(--color-background);
@@ -292,17 +295,20 @@
             font-size: 0.9rem; 
         }
         .logo-bar-container {
+            --logo-width: 1025.8px;
+            --side-spacing: 428.1px;
+            --logo-height: 166.3px;
             margin: 0 auto 3rem;
-            min-height: 166.3px;
-            max-width: 1882px;
+            min-height: var(--logo-height);
+            width: min(100%, calc(var(--logo-width) + (2 * var(--side-spacing))));
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0 1.5rem;
+            padding: 0 clamp(1rem, calc((100% - var(--logo-width)) / 2), var(--side-spacing));
         }
         .logo-bar-container img {
-            width: 100%;
-            max-width: 1025.8px;
+            width: min(100%, var(--logo-width));
+            max-width: var(--logo-width);
             height: auto;
             display: block;
         }
@@ -947,8 +953,11 @@
             .chat-bubble.bot { background-color: #e9ecef; color: #333; align-self: flex-start; border-bottom-left-radius: 0.3rem; }
             .input-container { padding: 1rem; border-top: 1px solid #e9ecef; }
             #chat-input-form { display: flex; gap: 0.75rem; align-items: center; }
-            #chat-input { flex-grow: 1; padding: 0.8rem 1.2rem; border: 1px solid #ccc; border-radius: 20px; font-size: 1rem; }
-            #chat-input:focus { outline: none; border-color: #0072BB; }
+            .chat-olabot-logo { width: 55px; height: 55px; flex-shrink: 0; border-radius: 50%; object-fit: contain; }
+            .chat-input-wrapper { flex-grow: 1; display: flex; align-items: center; gap: 0.75rem; border: 1px solid #ccc; border-radius: 30px; padding: 0.6rem 1rem; background-color: #fff; }
+            #chat-input { flex-grow: 1; border: none; font-size: 1rem; background: transparent; }
+            #chat-input:focus { outline: none; }
+            @media (max-width: 600px) { .chat-olabot-logo { width: 55px; height: 55px; } }
             #send-btn { padding: 0.6rem; border: none; background-color: #0072BB; color: white; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
             .initial-message { text-align: center; margin: auto; }
             .initial-message h1 { font-size: 1.8rem; font-weight: 500; color: #555; }
@@ -968,7 +977,10 @@
                     <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
                 </div>
                 <form id="chat-input-form">
-                    <input type="text" id="chat-input" placeholder="${t.placeholder}" autocomplete="off">
+                    <img src="/static/img/olabot-logo.png" alt="OLABOT" class="chat-olabot-logo">
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="chat-input" placeholder="${t.placeholder}" autocomplete="off">
+                    </div>
                     <button type="submit" id="send-btn" title="Enviar">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
