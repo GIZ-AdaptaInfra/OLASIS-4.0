@@ -174,31 +174,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Function to perform search with pagination
+  const createGridMessage = (message) => {
+    const messageContainer = document.createElement('div');
+    messageContainer.style.gridColumn = '1/-1';
+    messageContainer.style.textAlign = 'center';
+    messageContainer.style.padding = '2rem';
+    messageContainer.style.color = 'var(--color-gray-dark)';
+    messageContainer.textContent = message;
+    return messageContainer;
+  };
+
+  const renderGridMessage = (grid, message) => {
+    if (!grid) return;
+    grid.replaceChildren();
+    grid.appendChild(createGridMessage(message));
+  };
+
+  const isSafeExternalUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    try {
+      const parsed = new URL(url, window.location.origin);
+      return parsed.protocol === 'https:';
+    } catch (err) {
+      return false;
+    }
+  };
+
+  const sanitizeDoi = (doi) => {
+    if (!doi || typeof doi !== 'string') return null;
+    const normalized = doi.replace(/^(https?:\/\/)?doi\.org\//i, '').trim();
+    return normalized ? normalized : null;
+  };
+
   async function performSearch(query, page = 1) {
     if (!query) return;
 
     const lang = syncLanguage();
-    
+
     // Show loading state
     const loadingMessage = getResultsText(lang, 'loading');
-    if (articlesGrid) {
-      articlesGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${loadingMessage}</div>`;
-    }
-    if (specialistsGrid) {
-      specialistsGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${loadingMessage}</div>`;
-    }
-    
+    renderGridMessage(articlesGrid, loadingMessage);
+    renderGridMessage(specialistsGrid, loadingMessage);
+
     try {
       const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}&page=${page}`);
       if (!resp.ok) throw new Error('Search failed');
       const data = await resp.json();
-      
+
       // Clear previous results
-      if (articlesGrid) articlesGrid.innerHTML = '';
-      if (specialistsGrid) specialistsGrid.innerHTML = '';
-      
+      if (articlesGrid) articlesGrid.replaceChildren();
+      if (specialistsGrid) specialistsGrid.replaceChildren();
+
       document.querySelectorAll('.pagination-controls').forEach(el => el.remove());
-      
+
       // Populate articles
       if (data.articles && Array.isArray(data.articles)) {
         const noArticlesMessage = getResultsText(lang, 'noArticles');
@@ -207,20 +235,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewArticleLabel = getResultsText(lang, 'viewArticle');
 
         if (data.articles.length === 0) {
-          articlesGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${noArticlesMessage}</div>`;
+          renderGridMessage(articlesGrid, noArticlesMessage);
         } else {
           data.articles.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'result-card';
-            const authors = item.authors && item.authors.length ? `<p>${item.authors.join(', ')}</p>` : '';
-            const year = item.year ? `<p>${yearLabel}: ${item.year}</p>` : '';
-            const doi = item.doi ? `<p>DOI: <a href="https://doi.org/${item.doi.replace(/^(https?:\/\/)?doi\.org\//i, '')}" target="_blank">${item.doi}</a></p>` : '';
-            const articleLink = item.url ? `<p><a href="${item.url}" class="contact-link" target="_blank">${viewArticleLabel}</a></p>` : '';
-            card.innerHTML = `<h3>${item.title || untitledLabel}</h3>${authors}${year}${doi}${articleLink}`;
+            const titleEl = document.createElement('h3');
+            titleEl.textContent = item.title || untitledLabel;
+            card.appendChild(titleEl);
+
+            if (item.authors && Array.isArray(item.authors) && item.authors.length) {
+              const authorsEl = document.createElement('p');
+              authorsEl.textContent = item.authors.join(', ');
+              card.appendChild(authorsEl);
+            }
+
+            if (item.year) {
+              const yearEl = document.createElement('p');
+              yearEl.textContent = `${yearLabel}: ${item.year}`;
+              card.appendChild(yearEl);
+            }
+
+            const sanitizedDoi = sanitizeDoi(item.doi);
+            if (sanitizedDoi) {
+              const doiWrapper = document.createElement('p');
+              doiWrapper.textContent = 'DOI: ';
+              const doiLink = document.createElement('a');
+              doiLink.href = `https://doi.org/${sanitizedDoi}`;
+              doiLink.target = '_blank';
+              doiLink.rel = 'noopener noreferrer';
+              doiLink.textContent = sanitizedDoi;
+              doiWrapper.appendChild(doiLink);
+              card.appendChild(doiWrapper);
+            }
+
+            if (isSafeExternalUrl(item.url)) {
+              const linkWrapper = document.createElement('p');
+              const articleLink = document.createElement('a');
+              articleLink.href = item.url;
+              articleLink.className = 'contact-link';
+              articleLink.target = '_blank';
+              articleLink.rel = 'noopener noreferrer';
+              articleLink.textContent = viewArticleLabel;
+              linkWrapper.appendChild(articleLink);
+              card.appendChild(linkWrapper);
+            }
             articlesGrid.appendChild(card);
           });
         }
-        
+
         if (data.pagination && articlesGrid.parentNode) {
           const articlesPagination = createPaginationControls('articles', data.pagination, lang);
           if (articlesPagination) {
@@ -236,15 +299,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const noNameLabel = getResultsText(lang, 'noName');
 
         if (data.specialists.length === 0) {
-          specialistsGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${noSpecialistsMessage}</div>`;
+          renderGridMessage(specialistsGrid, noSpecialistsMessage);
         } else {
           data.specialists.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'result-card';
             const fullName = item.full_name || [item.given_names, item.family_names].filter(Boolean).join(' ').trim() || noNameLabel;
-            const orcid = item.orcid ? `<p class="orcid">ORCID: ${item.orcid}</p>` : '';
-            const profileLink = item.profile_url ? `<a href="${item.profile_url}" class="contact-link" target="_blank">${profileLabel}</a>` : '';
-            card.innerHTML = `<h3>${fullName}</h3>${orcid}${profileLink}`;
+            const nameEl = document.createElement('h3');
+            nameEl.textContent = fullName;
+            card.appendChild(nameEl);
+
+            if (item.orcid) {
+              const orcidEl = document.createElement('p');
+              orcidEl.className = 'orcid';
+              orcidEl.textContent = `ORCID: ${item.orcid}`;
+              card.appendChild(orcidEl);
+            }
+
+            if (isSafeExternalUrl(item.profile_url)) {
+              const profileWrapper = document.createElement('p');
+              const profileLink = document.createElement('a');
+              profileLink.href = item.profile_url;
+              profileLink.className = 'contact-link';
+              profileLink.target = '_blank';
+              profileLink.rel = 'noopener noreferrer';
+              profileLink.textContent = profileLabel;
+              profileWrapper.appendChild(profileLink);
+              card.appendChild(profileWrapper);
+            }
             specialistsGrid.appendChild(card);
           });
         }
@@ -265,12 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       const errorMessage = getResultsText(lang, 'error');
-      if (articlesGrid) {
-        articlesGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${errorMessage}</div>`;
-      }
-      if (specialistsGrid) {
-        specialistsGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--color-gray-dark);">${errorMessage}</div>`;
-      }
+      renderGridMessage(articlesGrid, errorMessage);
+      renderGridMessage(specialistsGrid, errorMessage);
     }
   }
 
