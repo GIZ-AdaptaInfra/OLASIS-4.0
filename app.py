@@ -4,13 +4,16 @@ This module defines a small web server that powers the OLASIS 4.0
 interface with pagination support.
 """
 
-import os
 import logging
-from flask import Flask, jsonify, render_template, request
-from dotenv import load_dotenv
-from olasis import OlaBot, search_articles, search_specialists
-import requests
+import os
+import secrets
 from datetime import datetime
+
+import requests
+from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template, request
+
+from olasis import OlaBot, search_articles, search_specialists
 
 load_dotenv()
 
@@ -18,13 +21,45 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-app.secret_key = os.environ.get("SECRET_KEY", "dev-fallback")  # em produção vem das Variáveis do Railway
+def _is_production_environment() -> bool:
+    """Best-effort detection of production/staging deployment."""
+
+    for env_var in ("FLASK_ENV", "ENVIRONMENT", "OLASIS_ENV"):
+        value = os.getenv(env_var, "").strip().lower()
+        if value in {"production", "prod", "staging"}:
+            return True
+    return False
+
+
+def _resolve_secret_key() -> str:
+    """Return a strong secret key, warning locally if unset."""
+
+    configured_key = os.getenv("SECRET_KEY")
+    if configured_key:
+        return configured_key
+
+    running_tests = os.getenv("PYTEST_CURRENT_TEST") is not None
+
+    if running_tests or not _is_production_environment():
+        logger.warning(
+            "SECRET_KEY not set; generating ephemeral key for local/testing use."
+        )
+        # Generate an ephemeral key for non-production environments.
+        return secrets.token_urlsafe(32)
+
+    raise RuntimeError(
+        "SECRET_KEY environment variable must be set in production environments."
+    )
+
+secret_key = _resolve_secret_key()
+
+app.secret_key = secret_key
 
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SECURE=True,   # deixe True em produção
+    SECRET_KEY=secret_key,
 )
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'olasis4-secret-key-change-in-production')
 
 # Inicializar OLABOT v2 com engenharia de prompt
 olabot = OlaBot(
@@ -139,7 +174,15 @@ def api_chat_suggestions():
         from olasis.prompt_engineering import ChatSuggestions
         
         context_type = request.args.get('context', 'general')
-        limit = int(request.args.get('count', request.args.get('limit', 4)))
+        requested_limit = request.args.get('count', request.args.get('limit', 4))
+        try:
+            limit = max(1, int(requested_limit))
+        except (TypeError, ValueError):
+            return {"error": "Invalid limit provided."}, 400
+
+        max_limit = 10
+        if limit > max_limit:
+            return {"error": f"Maximum allowed suggestions is {max_limit}."}, 400
         field = request.args.get('field', None)
         user_history = request.args.getlist('history') if request.args.getlist('history') else None
         
@@ -176,14 +219,23 @@ def api_chat_suggestions():
 def api_stats():
     """Get real-time statistics from OpenAlex and ORCID APIs."""
     try:
-        openalex_resp = requests.get('https://api.openalex.org/works?filter=type:article&per-page=1')
+        timeout_seconds = 10
+
+        openalex_resp = requests.get(
+            'https://api.openalex.org/works?filter=type:article&per-page=1',
+            timeout=timeout_seconds,
+        )
         if openalex_resp.status_code == 200:
             openalex_data = openalex_resp.json()
             total_articles = openalex_data.get('meta', {}).get('count', 200000000)
         else:
             total_articles = 200000000
         
-        orcid_resp = requests.get('https://pub.orcid.org/v3.0/search/?q=*&rows=1')
+
+        orcid_resp = requests.get(
+            'https://pub.orcid.org/v3.0/search/?q=*&rows=1',
+            timeout=timeout_seconds,
+        )
         if orcid_resp.status_code == 200:
             import xml.etree.ElementTree as ET
             root = ET.fromstring(orcid_resp.content)
