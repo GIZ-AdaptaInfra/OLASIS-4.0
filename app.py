@@ -9,11 +9,22 @@ import os
 import secrets
 from datetime import datetime
 
-import requests
-from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
-
 from olasis import OlaBot, search_articles, search_specialists
+from olasis.dependencies import (
+    require_dotenv_loader,
+    require_flask,
+    require_requests,
+)
+
+flask = require_flask()
+Flask = flask.Flask
+jsonify = flask.jsonify
+render_template = flask.render_template
+request = flask.request
+url_for = flask.url_for
+
+requests = require_requests()
+load_dotenv = require_dotenv_loader()
 
 load_dotenv()
 
@@ -39,29 +50,7 @@ def _resolve_secret_key() -> str:
         return configured_key
 
     running_tests = os.getenv("PYTEST_CURRENT_TEST") is not None
-
-    if running_tests or not _is_production_environment():
-        logger.warning(
-            "SECRET_KEY not set; generating ephemeral key for local/testing use."
-        )
-        # Generate an ephemeral key for non-production environments.
-        return secrets.token_urlsafe(32)
-
-    raise RuntimeError(
-        "SECRET_KEY environment variable must be set in production environments."
-    )
-
-secret_key = _resolve_secret_key()
-
-app.secret_key = secret_key
-
-app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=True,   # deixe True em produção
-    SECRET_KEY=secret_key,
-)
-
-# Inicializar OLABOT v2 com engenharia de prompt
+@@ -65,50 +76,78 @@ app.config.update(
 olabot = OlaBot(
     api_key=os.getenv("GOOGLE_API_KEY"), 
     model="gemini-2.5-flash",
@@ -86,6 +75,34 @@ def internal_error(error):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+def _cookie_policy_url() -> str:
+    """Return the policy URL, falling back gracefully if the route is missing."""
+
+    if "cookie_policy" not in app.view_functions:
+        return "/privacy/cookies"
+
+    try:
+        return url_for("cookie_policy")
+    except Exception:  # pragma: no cover - defensive for misconfigured builds
+        return "/privacy/cookies"
+
+
+@app.context_processor
+def inject_cookie_policy_url():
+    """Expose the cookie policy URL with a safe fallback for templates."""
+
+    return {"cookie_policy_url": _cookie_policy_url()}
+
+
+@app.route("/privacy/cookies")
+@app.route("/cookie-policy")
+def cookie_policy():
+    """Render the cookie policy page."""
+
+    return render_template("cookie_policy.html", datetime=datetime)
+
 
 # -------------------------
 # Rota: Busca com paginação

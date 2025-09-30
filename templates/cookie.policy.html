@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Cookies - OLASIS 4.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-ola: #01acdb;
+            --color-sis: #0b4870;
+            --color-gray-dark: #2c3e50;
+            --color-gray-light: #f4f6f8;
+            --font-title: 'Montserrat', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-body);
+            background: var(--color-gray-light);
+            color: var(--color-gray-dark);
+        }
+
+        header {
+            background: white;
+            border-bottom: 4px solid var(--color-ola);
+            padding: 1.5rem 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-family: var(--font-title);
+            font-size: 2rem;
+            margin: 0.5rem 0 0;
+            color: var(--color-sis);
+        }
+
+        header p {
+            margin: 0;
+            color: var(--color-gray-dark);
+            font-size: 0.95rem;
+        }
+
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 3rem;
+        }
+
+        section + section {
+            margin-top: 2rem;
+        }
+
+        h2 {
+            font-family: var(--font-title);
+            color: var(--color-sis);
+            margin-bottom: 0.75rem;
+        }
+
+        p, li {
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        ul {
+            padding-left: 1.2rem;
+        }
+
+        .contact {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px rgba(11, 72, 112, 0.08);
+            margin-top: 2rem;
+        }
+
+        a {
+            color: var(--color-ola);
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--color-gray-dark);
+            padding: 1.5rem 1rem 2rem;
+        }
+
+        footer a {
+            color: inherit;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <p><a href="{{ url_for('index') }}">&larr; Voltar para a OLASIS 4.0</a></p>
+        <h1>Política de Cookies do Sistema de Informação Sustentável da OLACEFS - a OLASIS 4.0</h1>
+        <p>Última atualização: {{ datetime.utcnow().strftime('%d/%m/%Y') }}</p>
+    </header>
+
+    <main>
+        <section id="objetivo">
+            <h2>1. Objetivo</h2>
+            <p>Esta política descreve como a plataforma OLASIS 4.0 utiliza cookies e tecnologias similares para oferecer suas funcionalidades principais, cumprir obrigações legais e manter a experiência das pessoas usuárias simples e segura.</p>
+            <p>O conteúdo foi elaborado com base na revisão do repositório oficial (incluindo <code>app.py</code>, <code>templates/index.html</code> e <code>static/js/main.js</code>) para garantir que cada item documentado corresponda ao comportamento real do sistema.</p>
+        </section>
+
+        <section id="mapeamento-sistema">
+            <h2>2. Correspondência entre implementação e política</h2>
+            <p>A validação técnica confirmou que o texto corresponde ao funcionamento atual:</p>
+            <ul>
+                <li><strong>Flask de backend (<code>app.py</code>):</strong> define apenas o cookie de sessão padrão com <code>HttpOnly</code> e <code>Secure</code>. Nenhuma rota cria cookies adicionais ou scripts de rastreamento. &rarr; Detalhado na Seção 3.</li>
+                <li><strong>Interface web (<code>templates/index.html</code>):</strong> exibe o banner com “Aceitar” e “Recusar”, traz o link “Saiba mais” e mantém as preferências restritas ao <code>localStorage</code>. &rarr; Explicado nas Seções 3, 4 e 5.</li>
+                <li><strong>Lógica complementar (<code>static/js/main.js</code>):</strong> sincroniza idioma, busca e chat sem criar cookies, beacons ou armazenamento extra. &rarr; Esclarecido na Seção 4.</li>
+                <li><strong>Integrações externas (OpenAlex, ORCID e Google GenAI):</strong> todas as chamadas ocorrem no backend, sem carregamento de scripts de terceiros no navegador. &rarr; Documentado na Seção 5.</li>
+            </ul>
+        </section>
+
+        <section id="estritamente-necessarios">
+            <h2>3. Cookies estritamente necessários</h2>
+            <p>A aplicação Flask define apenas o cookie de sessão padrão, configurado com os atributos <code>HttpOnly</code> e <code>Secure</code>.</p>
+            <ul>
+                <li><strong>Finalidade:</strong> manter a segurança da navegação e permitir eventuais sessões autenticadas.</li>
+                <li><strong>Base legal:</strong> execução de contrato e/ou legítimo interesse.</li>
+                <li><strong>Duração:</strong> expira automaticamente ao encerrar a sessão.</li>
+                <li><strong>Compartilhamento:</strong> não é enviado para provedores externos.</li>
+            </ul>
+            <p>Esse cookie é indispensável para o funcionamento básico do site e pode ser armazenado mesmo sem consentimento prévio, conforme previsto pela LGPD e pela GDPR para itens estritamente necessários.</p>
+        </section>
+
+        <section id="preferencias-locais">
+            <h2>4. Preferências armazenadas localmente</h2>
+            <p>Mesmo que não sejam cookies, a interface utiliza o <code>localStorage</code> para guardar preferências necessárias ao funcionamento esperado do site:</p>
+            <ul>
+                <li><strong>Idioma (<code>language</code>):</strong> registra o código do idioma escolhido (&ldquo;es&rdquo;, &ldquo;en&rdquo; ou &ldquo;pt&rdquo;) para manter a navegação consistente.</li>
+                <li><strong>Consentimento (<code>cookieConsent</code>):</strong> guarda a decisão tomada no banner (&ldquo;accepted&rdquo; ou &ldquo;declined&rdquo;) para evitar solicitações repetidas.</li>
+            </ul>
+            <p>Essas preferências permanecem exclusivamente no navegador da pessoa usuária, sem envio ao servidor ou compartilhamento com terceiros.</p>
+        </section>
+
+        <section id="banner">
+            <h2>5. Banner e gestão de consentimento</h2>
+            <p>O banner de consentimento é apresentado automaticamente em espanhol, inglês ou português, conforme a preferência identificada ou escolhida.</p>
+            <p>As opções visíveis são <strong>Aceitar</strong> e <strong>Recusar</strong>, acompanhadas do link <strong>&ldquo;Saiba mais&rdquo;</strong>, que direciona diretamente para esta política. O banner existe apenas por transparência, já que não há cookies opcionais a habilitar.</p>
+            <p>Somente a decisão final (&ldquo;accepted&rdquo; ou &ldquo;declined&rdquo;) é registrada no navegador. Depois disso, o banner deixa de ser exibido automaticamente; para rever a mensagem ou alterar a escolha, basta limpar o armazenamento do site no navegador.</p>
+        </section>
+
+        <section id="ausencia-nao-essenciais">
+            <h2>6. Ausência de cookies não essenciais e integrações de terceiros</h2>
+            <p>Atualmente, não são utilizados scripts de analytics, publicidade, mídias incorporadas ou outros serviços que instalem cookies adicionais no dispositivo da pessoa usuária.</p>
+            <p>As integrações com OpenAlex, ORCID e Google GenAI ocorrem exclusivamente no backend para processar buscas e respostas, sem carregar scripts externos no navegador. Embora esses provedores possam gerar registros técnicos próprios, eles não definem cookies para a pessoa usuária do OLASIS 4.0.</p>
+            <p>Caso uma futura integração exija cookies não essenciais, a plataforma solicitará consentimento específico e atualizará esta política antes da ativação.</p>
+
+            <h3>6.1 Cookies técnicos de infraestrutura e plataformas</h3>
+            <p>Algumas soluções de terceiros podem definir identificadores técnicos indispensáveis para garantir segurança e funcionamento:</p>
+            <ul>
+                <li><strong>Provedores de infraestrutura</strong> (por exemplo, AWS ou Cloudflare) &mdash; responsáveis por balanceamento de carga, autenticação de tráfego e proteção contra ataques.</li>
+                <li><strong>Plataformas móveis</strong> (iOS/Android) &mdash; utilizam identificadores obrigatórios para instalação, atualização e execução adequada de aplicativos.</li>
+                <li><strong>Serviços externos integrados</strong> (como o site institucional da OLACEFS) &mdash; podem definir cookies técnicos para exibir conteúdos incorporados ou garantir compatibilidade.</li>
+            </ul>
+            <p>Esses cookies são controlados pelos respectivos provedores e não podem ser desativados pela OLASIS 4.0, mas não coletam dados pessoais além do estritamente necessário para a operação técnica.</p>
+        </section>
+
+        <section id="direitos">
+            <h2>7. Direitos das pessoas usuárias</h2>
+            <p>As pessoas usuárias podem revisar ou revogar o consentimento limpando os dados do site no navegador ou aguardando a reapresentação do banner quando a decisão expirar.</p>
+            <p>Conforme a Lei Geral de Proteção de Dados (LGPD) e legislações correlatas, também é possível exercer os seguintes direitos:</p>
+            <ul>
+                <li>Acesso aos dados tratados.</li>
+                <li>Correção de dados incompletos, inexatos ou desatualizados.</li>
+                <li>Solicitação de exclusão ou anonimização de dados.</li>
+                <li>Portabilidade de dados.</li>
+                <li>Oposição ao tratamento de dados em determinadas circunstâncias.</li>
+            </ul>
+            <p>Para dúvidas ou solicitações, utilize o link “Contato/Contact/Contacto” no menu principal da plataforma ou envie mensagem para <a href="mailto:privacidade@olasis.org">privacidade@olasis.org</a>.</p>
+        </section>
+
+        <section id="privacidade-by-design" class="contact">
+            <h2>8. Compromisso com a privacidade desde a concepção</h2>
+            <p>Desde a criação da OLASIS 4.0, adotamos a diretriz de não coletar dados pessoais além do estritamente necessário.</p>
+            <p>Limitamos o uso de cookies aos estritamente necessários para segurança e operação técnica. Se houver mudança nessa diretriz, a atualização será comunicada de forma transparente e refletida nesta política antes da adoção de qualquer novo recurso.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 OLASIS. Para retornar à página inicial, <a href="{{ url_for('index') }}">clique aqui</a>.</p>
+    </footer>
+</body>
+</html>

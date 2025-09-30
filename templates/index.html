@@ -112,6 +112,19 @@
 
         /* --- Área de Busca --- */
         .search-area { display: flex; align-items: center; gap: 1rem; position: relative; max-width: 1050px; margin: 0 auto; justify-content: center; }
+        .hero-cookie-link {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .hero-cookie-link a {
+            color: var(--color-gray-dark);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        .hero-cookie-link a:hover {
+            text-decoration: underline;
+            color: var(--color-sis);
+        }        
         .search-wrapper { width: 950px; max-width: 100%; }
         .search-form { display: flex; width: 100%; position: relative; }
         .search-bar { width: 100%; padding: 1.3rem 4.5rem 1.3rem 2.5rem; font-size: 1.2rem; font-family: var(--font-main); border: 1px solid #dfe1e5; border-radius: 50px; background-color: var(--color-background); box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: box-shadow 0.3s, border-color 0.3s; }
@@ -286,12 +299,27 @@
         #tutorial .cta-btn:hover { transform: translateY(-2px); }
 
         /* --- Estilos do Rodapé --- */
-        footer { 
-            text-align: center; 
-            padding: 4rem 2rem 2rem 2rem; 
-            background-color: var(--color-gray-light); 
-            color: var(--color-gray-dark); 
-            font-size: 0.9rem; 
+        footer {
+            text-align: center;
+            padding: 4rem 2rem 2rem 2rem;
+            background-color: var(--color-gray-light);
+            color: var(--color-gray-dark);
+            font-size: 0.9rem;
+        }
+        .footer-privacy-links {
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .footer-privacy-links a {
+            color: inherit;
+            text-decoration: underline;
+        }
+        .footer-privacy-links a:hover {
+            color: var(--color-sis);
         }
         .logo-bar-container {
             --logo-width: 1025.8px;
@@ -321,28 +349,60 @@
         }
         .cookie-modal-overlay.show { display: flex; }
         .cookie-modal-content {
-            background: white; padding: 2rem; border-radius: 8px;
-            width: 90%; max-width: 600px; text-align: left;
+            background: white;
+            padding: 2.5rem 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 520px;
+            text-align: left;
+            box-shadow: 0 18px 50px rgba(0, 79, 165, 0.25);
         }
-        .cookie-modal-content .language-switcher { justify-content: center; margin-bottom: 1rem; }
-        .cookie-modal-content h2 { font-family: var(--font-main); font-size: 1.5rem; color: var(--color-ola); margin-bottom: 1rem; }
-        .cookie-modal-content p { line-height: 1.6; margin-bottom: 1.5rem; font-size: 1rem; }
+        .cookie-modal-content .language-switcher {
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .cookie-modal-header {
+            text-align: left;
+            margin-bottom: 1.25rem;
+        }
+        .cookie-modal-content h2 {
+            font-family: var(--font-main);
+            font-size: 1.5rem;
+            color: var(--color-ola);
+            margin: 0;
+        }
+        .cookie-modal-content p { line-height: 1.6; margin-bottom: 1.75rem; font-size: 1rem; }
         .cookie-modal-content p a { color: var(--color-sis); text-decoration: underline; cursor: pointer; }
-        .cookie-modal-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
+        .cookie-modal-buttons { display: flex; flex-direction: row; gap: 0.75rem; }
         .cookie-modal-buttons button {
-            width: 100%; padding: 0.8rem; border-radius: 5px; border: 1px solid var(--color-sis);
-            font-size: 1rem; font-family: var(--font-main); cursor: pointer;
-            transition: all 0.2s;
+            flex: 1;
+            padding: 0.85rem 1.5rem;
+            border-radius: 999px;
+            border: none;
+            font-size: 1rem;
+            font-family: var(--font-main);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 79, 165, 0.15);
         }
+        .cookie-modal-buttons button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 79, 165, 0.2); }
         .cookie-btn-accept { background-color: var(--color-sis); color: white; }
         .cookie-btn-accept:hover { background-color: var(--color-ola); }
-        .cookie-btn-settings { background: white; color: var(--color-sis); }
-        .cookie-btn-settings:hover { background: var(--color-gray-light); }
-        .cookie-btn-decline { background: white; color: var(--color-sis); }
+        .cookie-btn-decline { background: white; color: var(--color-sis); border: 1px solid var(--color-sis); }
         .cookie-btn-decline:hover { background: var(--color-gray-light); }
-        .cookie-modal-links { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; }
-        .cookie-modal-links a { color: var(--color-gray-dark); text-decoration: none; margin: 0 0.5rem; }
-        .cookie-modal-links a:hover { text-decoration: underline; }
+        .cookie-modal-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .cookie-modal-footer a {
+            font-size: 0.95rem;
+            color: var(--color-gray-dark);
+            text-decoration: none;
+        }
+        .cookie-modal-footer a:hover {
+            color: var(--color-sis);
+            text-decoration: underline;
+        }
 
         /* --- Pagination Controls --- */
         .pagination-controls { margin: 20px 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -468,7 +528,11 @@
                             <button type="submit" data-title-key="send-message" title="Enviar mensaje"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-sis)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button>
                         </form>
                     </div>
-               </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-cookie-link">
+            <a href="{{ cookie_policy_url }}" target="_blank" rel="noopener" data-key="cookie-policy">Más información</a>
         </div>
     </main>
     
@@ -550,6 +614,9 @@
             <img src="{{ url_for('static', filename='img/barra-logo.png') }}" alt="Barra Logo">
             </div>
             <p>© 2025 OLASIS. Todos los derechos reservados.</p>
+            <p class="footer-privacy-links">
+                <a href="{{ cookie_policy_url }}" target="_blank" rel="noopener" class="cookie-policy-link" data-key="cookie-footer-link">Más información</a>
+            </p>            
         </footer>
     </div>
 
@@ -560,15 +627,16 @@
                 <button class="lang-btn" data-lang="en">EN</button>
                 <button class="lang-btn" data-lang="pt">PT</button>
             </div>
-            <h2 data-key="cookie-title">Configuración de la Protección de Datos</h2>
-            <p data-key="cookie-message">Este sitio web utiliza medios externos, como vídeos, y una herramienta de análisis propia que puede utilizarse para recopilar datos sobre su comportamiento. También se utilizan cookies en este proceso. Usted puede ajustar o revocar su consentimiento para el uso de cookies y extensiones en cualquier momento.</p>
-            <div class="cookie-modal-buttons">
-                <button id="cookie-accept-all" class="cookie-btn-accept" data-key="cookie-accept">De acuerdo</button>
-                <button id="cookie-settings" class="cookie-btn-settings" data-key="cookie-settings">Establecer las preferencias de privacidad</button>
-                <button id="cookie-decline" class="cookie-btn-decline" data-key="cookie-decline">Disminución</button>
+            <div class="cookie-modal-header">
+                <h2 data-key="cookie-title">Aviso sobre cookies</h2>
             </div>
-            <div class="cookie-modal-links">
-                <a href="javascript:void(0)" id="modal-policy-link" data-key="cookie-policy">Política de privacidad</a>
+            <p data-key="cookie-message">Este sitio únicamente utiliza una cookie de sesión técnica (segura y HttpOnly) para proteger la navegación y permitir inicios de sesión cuando corresponda. También guardamos en su navegador la preferencia de idioma y la decisión sobre cookies; esta información no se comparte con terceros. El aviso existe solo por transparencia y no habilita cookies adicionales.</p>
+            <div class="cookie-modal-buttons">
+                <button id="cookie-accept" class="cookie-btn-accept" data-key="cookie-accept">Aceptar</button>
+                <button id="cookie-decline" class="cookie-btn-decline" data-key="cookie-decline">Rechazar</button>
+            </div>
+            <div class="cookie-modal-footer">
+                <a href="{{ cookie_policy_url }}" target="_blank" rel="noopener" id="modal-policy-link" data-key="cookie-policy">Más información</a>
             </div>
         </div>
     </div>
@@ -608,12 +676,12 @@
                     'tutorial-desc': 'Descubre cómo navegar, buscar y aprovechar todas las funcionalidades del sistema.',
                     'tutorial-btn': 'Ver Tutorial',
                     'olabot-inline-message': '¡Hola! Soy OLABOT, la asistente virtual del OLASIS. ¿Cómo puedo ayudarte?',
-                    'cookie-title': 'Configuración de la Protección de Datos',
-                    'cookie-message': 'Este sitio web utiliza medios externos, como vídeos, y una herramienta de análisis propia que puede utilizarse para recopilar datos sobre su comportamiento. También se utilizan cookies en este proceso. Usted puede ajustar o revocar su consentimiento para el uso de cookies y extensiones en cualquier momento.',
-                    'cookie-accept': 'De acuerdo',
-                    'cookie-settings': 'Establecer las preferencias de privacidad',
-                    'cookie-decline': 'Disminución',
-                    'cookie-policy': 'Política de privacidad',
+                    'cookie-title': 'Aviso sobre cookies',
+                    'cookie-message': 'Este sitio únicamente utiliza una cookie de sesión técnica (segura y HttpOnly) para proteger la navegación y permitir inicios de sesión cuando corresponda. También guardamos en su navegador la preferencia de idioma y la decisión tomada aquí; esta información no se comparte con terceros. El aviso existe solo por transparencia y no habilita cookies adicionales.',
+                    'cookie-accept': 'Aceptar',
+                    'cookie-decline': 'Rechazar',
+                    'cookie-policy': 'Más información',
+                    'cookie-footer-link': 'Más información',
                 },
                 en: {
                     'olabot': 'OLABOT',
@@ -647,12 +715,12 @@
                     'tutorial-desc': 'Discover how to navigate, search, and make the most of everything the system has to offer.',
                     'tutorial-btn': 'Watch Tutorial',
                     'olabot-inline-message': 'Hello! I am OLABOT, the virtual assistant of OLASIS. How can I help you?',
-                    'cookie-title': 'Data Protection Settings',
-                    'cookie-message': 'This website uses external media, such as videos, and its own analytics tool that may be used to collect data about your behavior. Cookies are also used in this process. You can adjust or revoke your consent for the use of cookies and extensions at any time.',
-                    'cookie-accept': 'Agree',
-                    'cookie-settings': 'Set privacy preferences',
+                    'cookie-title': 'Cookie notice',
+                    'cookie-message': 'This site only uses a secure, HttpOnly session cookie to protect navigation and enable sign-ins when applicable. We also store your language preference and the decision made here locally in your browser; none of this information is shared with third parties. The banner exists solely for transparency and does not enable additional cookies.',
+                    'cookie-accept': 'Accept',
                     'cookie-decline': 'Decline',
-                    'cookie-policy': 'Privacy policy',
+                    'cookie-policy': 'Learn more',
+                    'cookie-footer-link': 'Learn more',
                 },
                 pt: {
                     'olabot': 'OLABOT',
@@ -686,12 +754,12 @@
                     'tutorial-desc': 'Descubra como navegar, pesquisar e aproveitar todas as funcionalidades do sistema.',
                     'tutorial-btn': 'Ver Tutorial',
                     'olabot-inline-message': 'Olá! Eu sou o OLABOT, a assistente virtual do OLASIS. Como posso te ajudar?',
-                    'cookie-title': 'Configurações de Proteção de Dados',
-                    'cookie-message': 'Este site utiliza mídias externas, como vídeos, e uma ferramenta de análise própria que pode ser usada para coletar dados sobre seu comportamento. Cookies também são utilizados nesse processo. Você pode ajustar ou revogar seu consentimento para o uso de cookies e extensões a qualquer momento.',
-                    'cookie-accept': 'Concordo',
-                    'cookie-settings': 'Definir preferências de privacidade',
+                    'cookie-title': 'Aviso sobre cookies',
+                    'cookie-message': 'Este site utiliza apenas um cookie de sessão técnico (seguro e HttpOnly) para proteger a navegação e permitir logins quando necessário. Também registramos no seu navegador a preferência de idioma e a decisão tomada aqui; nenhuma dessas informações é compartilhada com terceiros. O aviso existe apenas por transparência e não ativa cookies adicionais.',
+                    'cookie-accept': 'Aceitar',
                     'cookie-decline': 'Recusar',
-                    'cookie-policy': 'Política de privacidade',
+                    'cookie-policy': 'Saiba mais',
+                    'cookie-footer-link': 'Saiba mais',
                 }
             };
 
@@ -811,26 +879,32 @@
 
             // Lógica do Modal de Cookies
             const cookieModal = document.getElementById('cookie-modal-overlay');
-            const acceptAllBtn = document.getElementById('cookie-accept-all');
+            const acceptBtn = document.getElementById('cookie-accept');
             const declineBtn = document.getElementById('cookie-decline');
-            const settingsBtn = document.getElementById('cookie-settings');
+            const policyLink = document.getElementById('modal-policy-link');
 
-            function handleCookieChoice(consent) {
-                localStorage.setItem('cookieConsent', consent);
+            function openCookieModal() {
+                cookieModal.classList.add('show');
+                document.body.classList.add('modal-open');
+            }
+
+            function closeCookieModal() {
                 cookieModal.classList.remove('show');
                 document.body.classList.remove('modal-open');
             }
-            
-            setTimeout(() => {
-                cookieModal.classList.add('show');
-                document.body.classList.add('modal-open');
-            }, 1000);
-            
-            acceptAllBtn.addEventListener('click', () => handleCookieChoice('accepted'));
+
+            function handleCookieChoice(consent) {
+                localStorage.setItem('cookieConsent', consent);
+                closeCookieModal();
+            }
+
+            const savedConsent = localStorage.getItem('cookieConsent');
+            if (!savedConsent) {
+                setTimeout(() => { openCookieModal(); }, 1000);
+            }
+
+            acceptBtn.addEventListener('click', () => handleCookieChoice('accepted'));
             declineBtn.addEventListener('click', () => handleCookieChoice('declined'));
-            settingsBtn.addEventListener('click', () => {
-                handleCookieChoice('settings');
-            });
 
             const filterButtons = document.querySelectorAll('.filter-btn');
             const articlesColumn = document.getElementById('articles-results');

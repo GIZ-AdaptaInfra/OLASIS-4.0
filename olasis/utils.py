@@ -10,7 +10,9 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-import requests
+from .dependencies import require_requests
+
+requests = require_requests()
 
 logger = logging.getLogger(__name__)
 
