@@ -50,7 +50,24 @@ def _resolve_secret_key() -> str:
         return configured_key
 
     running_tests = os.getenv("PYTEST_CURRENT_TEST") is not None
-@@ -65,50 +76,78 @@ app.config.update(
+    if _is_production_environment() and not running_tests:
+        raise RuntimeError(
+            "SECRET_KEY environment variable must be configured in production."
+        )
+
+    generated_key = secrets.token_urlsafe(32)
+
+    if not running_tests:
+        logger.warning(
+            "SECRET_KEY was not set – using an ephemeral value for local development."
+        )
+
+    return generated_key
+
+
+app.config.update(
+    SECRET_KEY=_resolve_secret_key(),
+)
 olabot = OlaBot(
     api_key=os.getenv("GOOGLE_API_KEY"), 
     model="gemini-2.5-flash",
