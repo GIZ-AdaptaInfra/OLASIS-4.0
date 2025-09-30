@@ -1,9 +1,11 @@
 """Flask application for OLASIS 4.0 - Basic version for testing."""
 
 import os
-from flask import Flask, jsonify, render_template, request
+from datetime import datetime
+from flask import Flask, jsonify, render_template, request, url_for
 from dotenv import load_dotenv
 from olasis import search_articles, search_specialists
+from jinja2 import TemplateNotFound
 
 load_dotenv()
 
@@ -12,6 +14,49 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+def _cookie_policy_url() -> str:
+    """Return the cookie policy URL, even if the route isn't registered."""
+
+    if "cookie_policy" not in app.view_functions:
+        return "/privacy/cookies"
+
+    try:
+        return url_for("cookie_policy")
+    except Exception:  # pragma: no cover - defensive guard
+        return "/privacy/cookies"
+
+
+@app.context_processor
+def inject_cookie_policy_url():
+    """Expose the cookie policy URL for templates that link to the policy."""
+
+    return {"cookie_policy_url": _cookie_policy_url()}
+
+
+@app.route("/privacy/cookies")
+@app.route("/cookie-policy")
+def cookie_policy():
+    """Render the cookie policy page."""
+
+    return _render_cookie_policy_template()
+
+
+def _render_cookie_policy_template():
+    """Render the cookie policy template, supporting legacy filenames."""
+
+    last_error: TemplateNotFound | None = None
+    for template_name in ("cookie_policy.html", "cookie-policy.html"):
+        try:
+            return render_template(template_name, datetime=datetime)
+        except TemplateNotFound as exc:
+            last_error = exc
+
+    if last_error is not None:
+        raise last_error
+
+    raise TemplateNotFound("cookie_policy.html")
 
 @app.route("/api/search")
 def api_search():

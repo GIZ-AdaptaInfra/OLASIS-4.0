@@ -15,6 +15,7 @@ from olasis.dependencies import (
     require_flask,
     require_requests,
 )
+from jinja2 import TemplateNotFound
 
 flask = require_flask()
 Flask = flask.Flask
@@ -118,7 +119,23 @@ def inject_cookie_policy_url():
 def cookie_policy():
     """Render the cookie policy page."""
 
-    return render_template("cookie_policy.html", datetime=datetime)
+    return _render_cookie_policy_template()
+
+
+def _render_cookie_policy_template():
+    """Render the cookie policy template with backwards compatibility."""
+
+    last_error: TemplateNotFound | None = None
+    for template_name in ("cookie_policy.html", "cookie-policy.html"):
+        try:
+            return render_template(template_name, datetime=datetime)
+        except TemplateNotFound as exc:
+            last_error = exc
+
+    if last_error is not None:
+        raise last_error
+
+    raise TemplateNotFound("cookie_policy.html")
 
 
 # -------------------------
