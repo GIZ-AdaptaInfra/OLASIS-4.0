@@ -288,10 +288,8 @@
         #que-es ul { list-style: disc; padding-left: 1.5rem; margin: 0; text-align: left; }
         #que-es li { font-size: 1.1rem; line-height: 1.7; margin-bottom: 1rem; }
         #tutorial .content-grid { display: flex; gap: 3rem; align-items: center; }
-        #tutorial .video-placeholder { flex: 1.2; height: 320px; background-color: var(--color-gray-medium); border-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        #tutorial .play-button { width: 80px; height: 80px; background-color: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
-        #tutorial .video-placeholder:hover .play-button { transform: scale(1.1); }
-        #tutorial .play-button svg { fill: var(--color-text); }
+        #tutorial .video-placeholder { flex: 1.2; border-radius: 12px; overflow: hidden; background-color: var(--color-gray-medium); display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; }
+        #tutorial .video-placeholder video { width: 100%; height: 100%; max-height: 360px; display: block; background-color: inherit; object-fit: cover; }
         #tutorial .text-content { flex: 1; text-align: left; }
         #tutorial h3 { font-size: 2rem; color: var(--color-sis); margin-bottom: 1rem; }
         #tutorial p { font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; }
@@ -597,12 +595,12 @@
         <section id="tutorial" class="content-section">
             <div class="content-grid">
                 <div class="video-placeholder">
-                    <div class="play-button"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></div>
+                    <video id="tutorial-video" controls preload="metadata"></video>
                 </div>
                 <div class="text-content">
                     <h3 data-key="tutorial-title">¡Tutorial del OLASIS!</h3>
                     <p data-key="tutorial-desc">Descubre cómo navegar, buscar y aprovechar todas las funcionalidades del sistema.</p>
-                    <button class="cta-btn" data-key="tutorial-btn">Ver Tutorial</button>
+                    <button class="cta-btn" id="tutorial-cta" data-key="tutorial-btn">Ver Tutorial</button>
                 </div>
             </div>
         </section>
@@ -764,12 +762,46 @@
             const searchInput = document.getElementById('search-input');
             const elementsToTranslate = document.querySelectorAll('[data-key]');
             const titleElements = document.querySelectorAll('[data-title-key]');
+            const tutorialVideo = document.getElementById('tutorial-video');
+            const tutorialCta = document.getElementById('tutorial-cta');            
             let currentLanguage = 'es'; // Default language
+
+            const tutorialVideoSources = {
+                es: "{{ url_for('static', filename='videos/ESP_Tutorial_OLASIS.mp4') }}",
+                en: "{{ url_for('static', filename='videos/EN_Tutorial_OLASIS.mp4') }}",
+                pt: "{{ url_for('static', filename='videos/PT_Tutorial_OLASIS.mp4') }}",
+            };
+
+            function updateTutorialVideo(lang) {
+                if (!tutorialVideo) return;
+                const source = tutorialVideoSources[lang] || tutorialVideoSources.es;
+                if (tutorialVideo.getAttribute('src') !== source) {
+                    const wasPlaying = !tutorialVideo.paused && !tutorialVideo.ended;
+                    tutorialVideo.pause();
+                    tutorialVideo.setAttribute('src', source);
+                    tutorialVideo.load();
+                    if (wasPlaying) {
+                        tutorialVideo.play().catch(() => {});
+                    }
+                }
+            }
+
+            if (tutorialCta && tutorialVideo) {
+                tutorialCta.addEventListener('click', () => {
+                    tutorialVideo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const playPromise = tutorialVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {
+                            tutorialVideo.focus({ preventScroll: true });
+                        });
+                    }
+                });
+            }
             
             function setLanguage(lang) {
                 if (!translations[lang]) return;
 
-                document.documentElement.lang = lang; 
+                document.documentElement.lang = lang;
 
                 elementsToTranslate.forEach(element => {
                     const key = element.getAttribute('data-key');
@@ -795,6 +827,8 @@
                         btn.classList.add('active');
                     }
                 });
+
+                updateTutorialVideo(lang);
                 
                 localStorage.setItem('language', lang);
                 currentLanguage = lang; // Store current language
