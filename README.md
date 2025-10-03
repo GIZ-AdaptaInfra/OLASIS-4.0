@@ -63,7 +63,7 @@ OLASIS-4.0/
    pip install -r requirements.txt
    ```
 
-4. **Configure a chave da API do Google**. A chave da API Gemini deve ser fornecida através da variável de ambiente `GOOGLE_API_KEY`. 
+4. **Configure a chave da API do Google**. A chave da API Gemini deve ser fornecida através da variável de ambiente `GOOGLE_API_KEY` (a aplicação também aceita `GEMINI_API_KEY` como fallback).
 
    **⚠️ IMPORTANTE**: Nunca exponha sua chave de API no código fonte!
 
@@ -74,12 +74,19 @@ OLASIS-4.0/
    # Copie o arquivo de exemplo
    cp .env.example .env
    # Edite .env e adicione sua chave real
-   GOOGLE_API_KEY=sua_chave_api_aqui
+   GOOGLE_API_KEY=sua_chave_api_aqui  # ou use GEMINI_API_KEY=sua_chave_api_aqui
    ```
+   Depois de abrir o arquivo `.env`, substitua apenas o trecho `sua_chave_api_aqui` pela sua credencial verdadeira, por exemplo:
+
+   ```env
+   GOOGLE_API_KEY=cole_aqui_sua_chave_do_gemini
+   ```
+
+   > ❗️ Mantenha o arquivo `.env.example` com o placeholder original. Se você colar a chave real nele, o Git poderá expor o segredo e o utilitário `python -m olasis.setup_checks` emitirá um alerta para que você mova a chave para `.env`.
 
    **Opção 2 - Variável de ambiente (Para deploy):**
    ```sh
-   export GOOGLE_API_KEY="sua_chave_api_aqui"
+   export GOOGLE_API_KEY="sua_chave_api_aqui"  # ou defina GEMINI_API_KEY="sua_chave_api_aqui"
    ```
 
 5. **Execute a aplicação** usando Flask. O servidor iniciará em `http://localhost:5000` por padrão.
@@ -87,6 +94,19 @@ OLASIS-4.0/
    ```sh
    python app.py
    ```
+
+### 🔍 Diagnóstico rápido do chatbot
+
+Se o OLABOT mostrar a mensagem "[Chatbot indisponível. Verifique sua chave de API e dependências.]",
+rode o utilitário de diagnóstico para identificar o que está faltando:
+
+```sh
+python -m olasis.setup_checks
+```
+
+O comando verifica se o pacote `google-genai` está instalado e se alguma das variáveis `GOOGLE_API_KEY`
+ou `GEMINI_API_KEY` contém uma chave real do Gemini. Corrija os itens marcados como `FAIL` e execute o utilitário
+novamente até obter `✅ Ambiente pronto para usar o OLABOT`.
 
 ## Deploy
 
@@ -99,7 +119,7 @@ OLASIS 4.0 usa um backend Flask e um frontend estático, o que torna o deploy fl
 3. **Conecte seu repositório** do OLASIS 4.0
 4. **Configure as variáveis de ambiente no Railway**:
    - Vá em **"Variables"** no painel do projeto
-   - Adicione: `GOOGLE_API_KEY` = `sua_chave_da_api_do_google`
+   - Adicione: `GOOGLE_API_KEY` = `sua_chave_da_api_do_google` (ou `GEMINI_API_KEY` como alternativa)
    - **⚠️ IMPORTANTE**: Nunca exponha a chave no código!
 5. **O deploy será feito automaticamente** e você receberá uma URL pública
 

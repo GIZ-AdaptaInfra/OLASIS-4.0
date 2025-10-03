@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 try:
     from google import genai  # type: ignore
@@ -40,10 +40,7 @@ class Chatbot:
         max_output_tokens: int = 2000,    # limite de tamanho moderado
         enable_prompt_engineering: bool = True,
     ) -> None:
-        if api_key is None:
-            api_key = os.getenv("GOOGLE_API_KEY")
-
-        self.api_key: str | None = api_key
+        self.api_key, resolved_from = self._resolve_api_key(api_key)
         self.model: str = model
         self.temperature = temperature
         self.top_p = top_p
@@ -64,9 +61,11 @@ class Chatbot:
             logger.warning("GOOGLE_API_KEY is not set; Chatbot will be disabled.")
             return
 
-        os.environ["GEMINI_API_KEY"] = self.api_key
+        os.environ.setdefault("GOOGLE_API_KEY", self.api_key)
+        if resolved_from != "GEMINI_API_KEY":
+            os.environ.setdefault("GEMINI_API_KEY", self.api_key)
         try:
-            self._client = genai.Client()
+            self._client = genai.Client(api_key=self.api_key)
             logger.info("Chatbot otimizado — model=%s", self.model)
         except Exception as exc:
             logger.error("Failed to initialise Google GenAI client: %s", exc)
@@ -127,9 +126,27 @@ class Chatbot:
         
         if self._client is None:
             unavailable = {
-                "en": "[Chatbot not available. Please check your API key and dependencies.]",
-                "pt": "[Chatbot indisponível. Verifique sua chave de API e dependências.]",
-                "es": "[Chatbot no disponible. Por favor verifica tu API key y dependencias.]",
+                "en": (
+                    "[Chatbot not available. Set GOOGLE_API_KEY in a local .env file]"
+                    "\n1. Run: cp .env.example .env"
+                    "\n2. Open .env and replace GOOGLE_API_KEY=sua_chave_api_aqui with your real key"
+                    "\n3. Restart the server or export the variable before running Flask"
+                    "\nNeed help? Execute: python -m olasis.setup_checks"
+                ),
+                "pt": (
+                    "[Chatbot indisponível. Defina GOOGLE_API_KEY em um arquivo .env local]"
+                    "\n1. Rode: cp .env.example .env"
+                    "\n2. Abra o .env e substitua GOOGLE_API_KEY=sua_chave_api_aqui pela sua chave real"
+                    "\n3. Reinicie o servidor ou exporte a variável antes de iniciar o Flask"
+                    "\nPara ajuda, execute: python -m olasis.setup_checks"
+                ),
+                "es": (
+                    "[Chatbot no disponible. Define GOOGLE_API_KEY en un archivo .env local]"
+                    "\n1. Ejecuta: cp .env.example .env"
+                    "\n2. Abre .env y reemplaza GOOGLE_API_KEY=sua_chave_api_aqui con tu clave real"
+                    "\n3. Reinicia el servidor o exporta la variable antes de iniciar Flask"
+                    "\n¿Dudas? Ejecuta: python -m olasis.setup_checks"
+                ),
             }
             return unavailable.get(lang, unavailable["es"])
             
@@ -350,3 +367,41 @@ class Chatbot:
             "max_output_tokens": self.max_output_tokens,
             "prompt_engineering": self.enable_prompt_engineering,
         }
+    
+    def _resolve_api_key(self, explicit_key: str | None) -> Tuple[str | None, str | None]:
+        """Return a usable API key and the source environment variable."""
+
+        placeholders = {
+            "",
+            "sua_chave_api_aqui",
+            "sua_chave_google_gemini_aqui",
+            "your_api_key",
+            "coloque_sua_chave",
+        }
+
+        def _normalise(value: Optional[str]) -> Optional[str]:
+            if value is None:
+                return None
+            stripped = value.strip()
+            if stripped.lower() in placeholders:
+                return None
+            return stripped
+
+        if (normalised := _normalise(explicit_key)):
+            return normalised, "explicit"
+
+        env_candidates = (
+            ("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY")),
+            ("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY")),
+        )
+
+        for name, raw_value in env_candidates:
+            normalised = _normalise(raw_value)
+            if normalised:
+                if name == "GEMINI_API_KEY" and not os.getenv("GOOGLE_API_KEY"):
+                    logger.info(
+                        "Using GEMINI_API_KEY as a fallback because GOOGLE_API_KEY is absent."
+                    )
+                return normalised, name
+
+        return None, None

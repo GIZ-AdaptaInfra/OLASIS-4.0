@@ -27,7 +27,7 @@ url_for = flask.url_for
 requests = require_requests()
 load_dotenv = require_dotenv_loader()
 
-load_dotenv()
+dotenv_loaded = load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -65,12 +65,35 @@ def _resolve_secret_key() -> str:
 
     return generated_key
 
+def _resolve_google_api_key() -> str | None:
+    """Return a configured Gemini API key with helpful logging."""
+
+    key = os.getenv("GOOGLE_API_KEY", "").strip()
+    if key:
+        return key
+
+    fallback = os.getenv("GEMINI_API_KEY", "").strip()
+    if fallback:
+        logger.warning(
+            "GOOGLE_API_KEY não foi definido, mas GEMINI_API_KEY está presente – "
+            "usando fallback. Considere renomear a variável para manter compatibilidade."
+        )
+        return fallback
+
+    if not dotenv_loaded:
+        logger.warning(
+            "Nenhum arquivo .env encontrado ao carregar variáveis – "
+            "crie um .env ou defina GOOGLE_API_KEY/GEMINI_API_KEY manualmente."
+        )
+
+    return None
+
 
 app.config.update(
     SECRET_KEY=_resolve_secret_key(),
 )
 olabot = OlaBot(
-    api_key=os.getenv("GOOGLE_API_KEY"), 
+    api_key=_resolve_google_api_key(),
     model="gemini-2.5-flash",
     temperature=0.7,
     enable_prompt_engineering=True
