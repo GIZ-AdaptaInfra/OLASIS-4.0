@@ -232,16 +232,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const noArticlesMessage = getResultsText(lang, 'noArticles');
         const untitledLabel = getResultsText(lang, 'untitledArticle');
         const yearLabel = getResultsText(lang, 'year');
-        const viewArticleLabel = getResultsText(lang, 'viewArticle');
 
         if (data.articles.length === 0) {
           renderGridMessage(articlesGrid, noArticlesMessage);
         } else {
-          data.articles.forEach((item) => {
+          data.articles.slice(0, 4).forEach((item) => {
             const card = document.createElement('div');
             card.className = 'result-card';
             const titleEl = document.createElement('h3');
-            titleEl.textContent = item.title || untitledLabel;
+            const titleText = item.title || untitledLabel;
+
+            if (isSafeExternalUrl(item.url)) {
+              const titleLink = document.createElement('a');
+              titleLink.href = item.url;
+              titleLink.target = '_blank';
+              titleLink.rel = 'noopener noreferrer';
+              titleLink.textContent = titleText;
+              titleEl.appendChild(titleLink);
+            } else {
+              titleEl.textContent = titleText;
+            }
+
             card.appendChild(titleEl);
 
             if (item.authors && Array.isArray(item.authors) && item.authors.length) {
@@ -269,19 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
               card.appendChild(doiWrapper);
             }
 
-            if (isSafeExternalUrl(item.url)) {
-              const linkWrapper = document.createElement('p');
-              const articleLink = document.createElement('a');
-              articleLink.href = item.url;
-              articleLink.className = 'contact-link';
-              articleLink.target = '_blank';
-              articleLink.rel = 'noopener noreferrer';
-              articleLink.textContent = viewArticleLabel;
-              linkWrapper.appendChild(articleLink);
-              card.appendChild(linkWrapper);
-            }
             articlesGrid.appendChild(card);
           });
+          if (articlesGrid) {
+            articlesGrid.scrollLeft = 0;
+          }
         }
         
         if (data.pagination && articlesGrid.parentNode) {
@@ -295,18 +298,28 @@ document.addEventListener('DOMContentLoaded', () => {
       // Populate specialists
       if (data.specialists && Array.isArray(data.specialists)) {
         const noSpecialistsMessage = getResultsText(lang, 'noSpecialists');
-        const profileLabel = getResultsText(lang, 'profile');
         const noNameLabel = getResultsText(lang, 'noName');
 
         if (data.specialists.length === 0) {
           renderGridMessage(specialistsGrid, noSpecialistsMessage);
         } else {
-          data.specialists.forEach((item) => {
+          data.specialists.slice(0, 4).forEach((item) => {
             const card = document.createElement('div');
             card.className = 'result-card';
             const fullName = item.full_name || [item.given_names, item.family_names].filter(Boolean).join(' ').trim() || noNameLabel;
             const nameEl = document.createElement('h3');
-            nameEl.textContent = fullName;
+
+            if (isSafeExternalUrl(item.profile_url)) {
+              const profileLink = document.createElement('a');
+              profileLink.href = item.profile_url;
+              profileLink.target = '_blank';
+              profileLink.rel = 'noopener noreferrer';
+              profileLink.textContent = fullName;
+              nameEl.appendChild(profileLink);
+            } else {
+              nameEl.textContent = fullName;
+            }
+
             card.appendChild(nameEl);
 
             if (item.orcid) {
@@ -316,19 +329,11 @@ document.addEventListener('DOMContentLoaded', () => {
               card.appendChild(orcidEl);
             }
 
-            if (isSafeExternalUrl(item.profile_url)) {
-              const profileWrapper = document.createElement('p');
-              const profileLink = document.createElement('a');
-              profileLink.href = item.profile_url;
-              profileLink.className = 'contact-link';
-              profileLink.target = '_blank';
-              profileLink.rel = 'noopener noreferrer';
-              profileLink.textContent = profileLabel;
-              profileWrapper.appendChild(profileLink);
-              card.appendChild(profileWrapper);
-            }
             specialistsGrid.appendChild(card);
           });
+          if (specialistsGrid) {
+            specialistsGrid.scrollLeft = 0;
+          }
         }
         
         if (data.pagination && specialistsGrid.parentNode) {

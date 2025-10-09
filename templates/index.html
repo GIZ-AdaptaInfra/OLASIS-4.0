@@ -245,9 +245,20 @@
         .results-content { display: grid; grid-template-columns: 1fr; gap: 2.5rem; margin-top: 1rem; }
         .results-column h2 { font-size: 1.75rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; color: var(--color-text); }
         .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        .highlight-strip { display: flex; flex-wrap: nowrap; gap: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin; }
+        .highlight-strip::-webkit-scrollbar { height: 8px; }
+        .highlight-strip::-webkit-scrollbar-thumb { background: var(--color-gray-medium); border-radius: 999px; }
+        .highlight-strip .result-card { flex: 1 1 min(240px, calc((100% - 4.5rem) / 4)); min-width: 160px; max-width: 300px; }
+        .highlight-strip .result-card:nth-child(n+5),
+        #articles-results .results-grid .result-card:nth-child(n+5),
+        #specialists-results .results-grid .result-card:nth-child(n+5) { display: none; }
         .result-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--color-gray-medium); text-align: left; transition: all 0.3s; }
         .result-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
         .result-card h3 { color: var(--color-sis); margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .result-card h3 a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .result-card h3 a:hover,
+        .result-card h3 a:focus { text-decoration: underline; }
+        .result-card h3 a:focus-visible { outline: 2px solid var(--color-active-link); outline-offset: 2px; }
         .result-card p { margin-bottom: 0.5rem; line-height: 1.6; color: var(--color-gray-dark); }
         .result-card .orcid { color: var(--color-gray-dark); font-size: 0.9rem; font-style: italic; }
         .result-card .contact-link { color: var(--color-ola); text-decoration: none; font-weight: bold; }
@@ -457,8 +468,14 @@
             .filters-container { flex-wrap: wrap; justify-content: center; }
             .back-to-home-btn { margin-left: 0; margin-top: 0.5rem; width: 100%; justify-content: center; }
             .results-grid { grid-template-columns: 1fr; }
+            .highlight-strip { gap: 1rem; padding-bottom: 0.25rem; }
+            .highlight-strip .result-card { flex: 0 0 min(220px, calc((100% - 3rem) / 4)); min-width: 150px; }
             #inline-chat-window { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); }
             #inline-chat-window.show { transform: translateX(-50%) scale(1); }
+        }
+        @media (max-width: 600px) {
+            .highlight-strip { gap: 0.75rem; }
+            .highlight-strip .result-card { flex: 0 0 clamp(200px, 70vw, 240px); min-width: 170px; }
         }
     </style>
 </head>
@@ -560,18 +577,18 @@
             </button>
         </div>
         <div class="results-content">
-            <div class="results-column" id="articles-results">
-                <h2 data-key="results-articles-title">Artículos</h2>
-                <div class="results-grid">
-                    <div class="result-card"><h3>Auditoría de Infraestrutura Verde: Un Nuevo Paradigma</h3><p>Este documento explora los desafíos y oportunidades in a auditoría de projetos de infraestrutura sustentável...</p><footer>Fonte: OLACEFS Journal, 2024</footer></div>
-                    <div class="result-card"><h3>Buenas Prácticas en la Fiscalización de Obras Públicas Verdes</h3><p>Análisis de casos de estudio de toda la región, destacando as metodologías mais eficazes...</p><footer>Fonte: Conferência Anual CCC, 2023</footer></div>
-                </div>
-            </div>
             <div class="results-column" id="specialists-results">
                 <h2 data-key="results-specialists-title">Especialistas</h2>
-                <div class="results-grid">
+                <div class="results-grid specialists-grid highlight-strip">
                     <div class="result-card"><h3>Dra. Elena Sofia Torres</h3><p>Especialista en políticas públicas para la sostenibilidad y fiscalización ambiental. Vasta experiencia en proyectos con impacto regional.</p><p class="orcid">ORCID: 0000-0002-1825-0097</p><a href="#" class="contact-link">Contactar</a></div>
                     <div class="result-card"><h3>Dr. João Alvez Pereira</h3><p>Investigador principal en el área de materiales sostenibles para la construcción y su ciclo de vida.</p><p class="orcid">ORCID: 0000-0001-5109-3700</p><a href="#" class="contact-link">Contactar</a></div>
+                </div>
+            </div>
+            <div class="results-column" id="articles-results">
+                <h2 data-key="results-articles-title">Artículos</h2>
+                <div class="results-grid articles-grid highlight-strip">
+                    <div class="result-card"><h3>Auditoría de Infraestrutura Verde: Un Nuevo Paradigma</h3><p>Este documento explora los desafíos y oportunidades in a auditoría de projetos de infraestrutura sustentável...</p><footer>Fonte: OLACEFS Journal, 2024</footer></div>
+                    <div class="result-card"><h3>Buenas Prácticas en la Fiscalización de Obras Públicas Verdes</h3><p>Análisis de casos de estudio de toda la región, destacando as metodologías mais eficazes...</p><footer>Fonte: Conferência Anual CCC, 2023</footer></div>
                 </div>
             </div>
         </div>
@@ -625,7 +642,7 @@
             <div class="cookie-modal-header">
                 <h2 data-key="cookie-title">Aviso sobre cookies</h2>
             </div>
-            <p data-key="cookie-message">Este sitio únicamente utiliza una cookie de sesión técnica (segura y HttpOnly) para proteger la navegación y permitir inicios de sesión cuando corresponda. También guardamos en su navegador la preferencia de idioma y la decisión sobre cookies. Esta información no se comparte con terceros. El aviso existe solo por transparencia y no habilita cookies adicionales.</p>
+            <p data-key="cookie-message">Este sitio únicamente utiliza una cookie de sesión técnica (segura y HttpOnly) para proteger la navegación y permitir inicios de sesión cuando corresponda. También guardamos en su navegador la preferencia de idioma y la decisión sobre cookies; esta información no se comparte con terceros. El aviso existe solo por transparencia y no habilita cookies adicionales.</p>
             <div class="cookie-modal-buttons">
                 <button id="cookie-accept" class="cookie-btn-accept" data-key="cookie-accept">Aceptar</button>
                 <button id="cookie-decline" class="cookie-btn-decline" data-key="cookie-decline">Rechazar</button>
@@ -672,7 +689,7 @@
                     'tutorial-btn': 'Ver Tutorial',
                     'olabot-inline-message': '¡Hola! Soy OLABOT, la asistente virtual del OLASIS. ¿Cómo puedo ayudarte?',
                     'cookie-title': 'Aviso sobre cookies',
-                    'cookie-message': 'Este sitio únicamente utiliza una cookie de sesión técnica (segura y HttpOnly) para proteger la navegación y permitir inicios de sesión cuando corresponda. También guardamos en su navegador la preferencia de idioma y la decisión tomada aquí. Esta información no se comparte con terceros. El aviso existe solo por transparencia y no habilita cookies adicionales.',
+                    'cookie-message': 'Este sitio únicamente utiliza una cookie de sesión técnica (segura y HttpOnly) para proteger la navegación y permitir inicios de sesión cuando corresponda. También guardamos en su navegador la preferencia de idioma y la decisión tomada aquí; esta información no se comparte con terceros. El aviso existe solo por transparencia y no habilita cookies adicionales.',
                     'cookie-accept': 'Aceptar',
                     'cookie-decline': 'Rechazar',
                     'cookie-policy': 'Más información',
@@ -711,7 +728,7 @@
                     'tutorial-btn': 'Watch Tutorial',
                     'olabot-inline-message': 'Hello! I am OLABOT, the virtual assistant of OLASIS. How can I help you?',
                     'cookie-title': 'Cookie notice',
-                    'cookie-message': 'This site only uses a secure, HttpOnly session cookie to protect navigation and enable sign-ins when applicable. We also store your language preference and the decision made here locally in your browser. None of this information is shared with third parties. The banner exists solely for transparency and does not enable additional cookies.',
+                    'cookie-message': 'This site only uses a secure, HttpOnly session cookie to protect navigation and enable sign-ins when applicable. We also store your language preference and the decision made here locally in your browser; none of this information is shared with third parties. The banner exists solely for transparency and does not enable additional cookies.',
                     'cookie-accept': 'Accept',
                     'cookie-decline': 'Decline',
                     'cookie-policy': 'Learn more',
@@ -750,7 +767,7 @@
                     'tutorial-btn': 'Ver Tutorial',
                     'olabot-inline-message': 'Olá! Eu sou o OLABOT, a assistente virtual do OLASIS. Como posso te ajudar?',
                     'cookie-title': 'Aviso sobre cookies',
-                    'cookie-message': 'Este site utiliza apenas um cookie de sessão técnico (seguro e HttpOnly) para proteger a navegação e permitir logins quando necessário. Também registramos no seu navegador a preferência de idioma e a decisão tomada aqui. Nenhuma dessas informações é compartilhada com terceiros. O aviso existe apenas por transparência e não ativa cookies adicionais.',
+                    'cookie-message': 'Este site utiliza apenas um cookie de sessão técnico (seguro e HttpOnly) para proteger a navegação e permitir logins quando necessário. Também registramos no seu navegador a preferência de idioma e a decisão tomada aqui; nenhuma dessas informações é compartilhada com terceiros. O aviso existe apenas por transparência e não ativa cookies adicionais.',
                     'cookie-accept': 'Aceitar',
                     'cookie-decline': 'Recusar',
                     'cookie-policy': 'Saiba mais',
