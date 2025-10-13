@@ -6,8 +6,10 @@ interface with pagination support.
 
 import logging
 import os
+import re
 import secrets
 from datetime import datetime
+from pathlib import Path
 
 from olasis import OlaBot, search_articles, search_specialists
 from olasis.dependencies import (
@@ -23,7 +25,7 @@ jsonify = flask.jsonify
 render_template = flask.render_template
 request = flask.request
 url_for = flask.url_for
-send_from_directory = flask.send_from_directory
+send_file = flask.send_file
 abort = flask.abort
 
 requests = require_requests()
@@ -120,9 +122,11 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/media/tutorial/<lang>")
-def tutorial_video(lang: str):
-    """Serve tutorial videos without exposing the static directory."""
+_VIDEOS_DIRECTORY = Path(app.root_path) / "static" / "videos"
+
+
+def _resolve_tutorial_path(lang: str) -> Path:
+    """Return the filesystem path for the requested tutorial video."""
 
     language_map = {
         "es": "ESP_Tutorial_OLASIS.mp4",
@@ -134,12 +138,65 @@ def tutorial_video(lang: str):
     if not filename:
         abort(404)
 
-    return send_from_directory(
-        os.path.join(app.static_folder, "videos"),
-        filename,
-        mimetype="video/mp4",
-        conditional=True,
-    )
+    video_path = (_VIDEOS_DIRECTORY / filename).resolve()
+    if not video_path.is_file() or _VIDEOS_DIRECTORY not in video_path.parents:
+        abort(404)
+
+    return video_path
+
+
+def _build_range_response(video_path: Path, range_header: str):
+    """Return a partial content response for Range/seek support."""
+
+    match = re.match(r"bytes=(\d+)-(\d*)", range_header)
+    if not match:
+        return None
+
+    start = int(match.group(1))
+    file_size = video_path.stat().st_size
+    end_group = match.group(2)
+    end = int(end_group) if end_group else file_size - 1
+    end = min(end, file_size - 1)
+    if start > end:
+        return None
+
+    chunk_size = 8192
+    length = end - start + 1
+
+    def generate():
+        with video_path.open("rb") as file_obj:
+            file_obj.seek(start)
+            remaining = length
+            while remaining > 0:
+                read_length = min(chunk_size, remaining)
+                data = file_obj.read(read_length)
+                if not data:
+                    break
+                yield data
+                remaining -= len(data)
+
+    response = flask.Response(generate(), status=206, mimetype="video/mp4")
+    response.headers.add("Content-Range", f"bytes {start}-{end}/{file_size}")
+    response.headers.add("Accept-Ranges", "bytes")
+    response.headers.add("Content-Length", str(length))
+    return response
+
+
+@app.route("/media/tutorial/<lang>")
+def tutorial_video(lang: str):
+    """Serve tutorial videos with robust range/seek support for streaming."""
+
+    video_path = _resolve_tutorial_path(lang)
+    range_header = request.headers.get("Range")
+
+    if range_header:
+        range_response = _build_range_response(video_path, range_header)
+        if range_response is not None:
+            return range_response
+
+    response = send_file(video_path, mimetype="video/mp4", conditional=True)
+    response.headers.setdefault("Accept-Ranges", "bytes")
+    return response
 
 
 def _cookie_policy_url() -> str:
