@@ -784,9 +784,9 @@
             let currentLanguage = 'es'; // Default language
 
             const tutorialVideoSources = {
-                es: "{{ url_for('static', filename='videos/ESP_Tutorial_OLASIS.mp4') }}",
-                en: "{{ url_for('static', filename='videos/EN_Tutorial_OLASIS.mp4') }}",
-                pt: "{{ url_for('static', filename='videos/PT_Tutorial_OLASIS.mp4') }}",
+                es: "{{ url_for('tutorial_video', lang='es') }}",
+                en: "{{ url_for('tutorial_video', lang='en') }}",
+                pt: "{{ url_for('tutorial_video', lang='pt') }}",
             };
 
             function updateTutorialVideo(lang) {

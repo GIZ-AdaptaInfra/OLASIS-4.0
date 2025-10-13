@@ -23,6 +23,8 @@ jsonify = flask.jsonify
 render_template = flask.render_template
 request = flask.request
 url_for = flask.url_for
+send_from_directory = flask.send_from_directory
+abort = flask.abort
 
 requests = require_requests()
 load_dotenv = require_dotenv_loader()
@@ -116,6 +118,28 @@ def internal_error(error):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/media/tutorial/<lang>")
+def tutorial_video(lang: str):
+    """Serve tutorial videos without exposing the static directory."""
+
+    language_map = {
+        "es": "ESP_Tutorial_OLASIS.mp4",
+        "en": "EN_Tutorial_OLASIS.mp4",
+        "pt": "PT_Tutorial_OLASIS.mp4",
+    }
+
+    filename = language_map.get(lang.lower())
+    if not filename:
+        abort(404)
+
+    return send_from_directory(
+        os.path.join(app.static_folder, "videos"),
+        filename,
+        mimetype="video/mp4",
+        conditional=True,
+    )
 
 
 def _cookie_policy_url() -> str:
