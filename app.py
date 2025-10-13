@@ -27,6 +27,7 @@ request = flask.request
 url_for = flask.url_for
 send_file = flask.send_file
 abort = flask.abort
+stream_with_context = flask.stream_with_context
 
 requests = require_requests()
 load_dotenv = require_dotenv_loader()
@@ -175,7 +176,9 @@ def _build_range_response(video_path: Path, range_header: str):
                 yield data
                 remaining -= len(data)
 
-    response = flask.Response(generate(), status=206, mimetype="video/mp4")
+    response = flask.Response(
+        stream_with_context(generate()), status=206, mimetype="video/mp4"
+    )
     response.headers.add("Content-Range", f"bytes {start}-{end}/{file_size}")
     response.headers.add("Accept-Ranges", "bytes")
     response.headers.add("Content-Length", str(length))
