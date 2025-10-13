@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Configure the default port used by Google Cloud Run and other GCP services
+EXPOSE 8080
 ENV PORT=8080
 
 # Use Gunicorn as the production WSGI server
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+CMD ["gunicorn", "--bind", ":$PORT", "app:app"]
