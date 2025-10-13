@@ -21,6 +21,7 @@
 OLASIS-4.0/
 │
 ├── README.md               # Este arquivo: descrição, instalação e uso
+├── Dockerfile              # Imagem Docker pronta para deploy (Google Cloud Run, etc.)
 ├── requirements.txt        # Dependências Python para a aplicação
 ├── app.py                  # Ponto de entrada da aplicação Flask
 ├── Procfile                # Configuração para deploy (Railway/Heroku)
