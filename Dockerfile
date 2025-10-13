@@ -21,4 +21,5 @@ EXPOSE 8080
 ENV PORT=8080
 
 # Use Gunicorn as the production WSGI server
-CMD ["gunicorn", "--bind", ":$PORT", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "OLASIS-4.0.app:app"]
+
