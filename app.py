@@ -153,8 +153,14 @@ def _build_range_response(video_path: Path, range_header: str):
     if not match:
         return None
 
-    start = int(match.group(1))
     file_size = video_path.stat().st_size
+    start = int(match.group(1))
+    if start >= file_size:
+        response = flask.Response(status=416)
+        response.headers["Accept-Ranges"] = "bytes"
+        response.headers["Content-Range"] = f"bytes */{file_size}"
+        return response
+
     end_group = match.group(2)
     end = int(end_group) if end_group else file_size - 1
     end = min(end, file_size - 1)
@@ -179,13 +185,33 @@ def _build_range_response(video_path: Path, range_header: str):
     response = flask.Response(
         stream_with_context(generate()), status=206, mimetype="video/mp4"
     )
-    response.headers.add("Content-Range", f"bytes {start}-{end}/{file_size}")
-    response.headers.add("Accept-Ranges", "bytes")
-    response.headers.add("Content-Length", str(length))
+    response.headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+    response.headers["Accept-Ranges"] = "bytes"
+    response.headers["Content-Length"] = str(length)
     return response
 
 
-@app.route("/media/tutorial/<lang>")
+def _build_full_response(video_path: Path):
+    """Return a streaming response for the entire video file."""
+
+    file_size = video_path.stat().st_size
+    chunk_size = 8192
+
+    def generate():
+        with video_path.open("rb") as file_obj:
+            while True:
+                data = file_obj.read(chunk_size)
+                if not data:
+                    break
+                yield data
+
+    response = flask.Response(stream_with_context(generate()), mimetype="video/mp4")
+    response.headers["Content-Length"] = str(file_size)
+    response.headers["Accept-Ranges"] = "bytes"
+    return response
+
+
+@app.route("/media/tutorial/<lang>", methods=["GET", "HEAD"])
 def tutorial_video(lang: str):
     """Serve tutorial videos with robust range/seek support for streaming."""
 
@@ -195,10 +221,15 @@ def tutorial_video(lang: str):
     if range_header:
         range_response = _build_range_response(video_path, range_header)
         if range_response is not None:
+            if request.method == "HEAD":
+                range_response.response = []
+                range_response.direct_passthrough = False
             return range_response
 
-    response = send_file(video_path, mimetype="video/mp4", conditional=True)
-    response.headers.setdefault("Accept-Ranges", "bytes")
+    response = _build_full_response(video_path)
+    if request.method == "HEAD":
+        response.response = []
+        response.direct_passthrough = False
     return response
 
 
