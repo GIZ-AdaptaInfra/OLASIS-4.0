@@ -13,6 +13,9 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy static assets explicitly so tutorial videos are bundled in the image
+COPY static/ ./static/
+
 # Copy the rest of the application source code
 COPY . .
 

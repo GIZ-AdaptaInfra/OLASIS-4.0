@@ -25,7 +25,6 @@ jsonify = flask.jsonify
 render_template = flask.render_template
 request = flask.request
 url_for = flask.url_for
-send_file = flask.send_file
 abort = flask.abort
 stream_with_context = flask.stream_with_context
 
@@ -141,6 +140,9 @@ def _resolve_tutorial_path(lang: str) -> Path:
 
     video_path = (_VIDEOS_DIRECTORY / filename).resolve()
     if not video_path.is_file() or _VIDEOS_DIRECTORY not in video_path.parents:
+        print(f"📂 Verificando caminho: {_VIDEOS_DIRECTORY}")
+        print(f"🎬 Tentando abrir: {video_path}")
+        print(f"✅ Existe arquivo? {video_path.exists()}")
         abort(404)
 
     return video_path
