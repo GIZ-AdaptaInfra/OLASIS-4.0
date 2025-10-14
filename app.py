@@ -123,7 +123,7 @@ def index():
 
 
 _VIDEOS_DIRECTORY = Path(app.root_path) / "static" / "videos"
-
+_MAX_RANGE_CHUNK_SIZE = 8 * 1024 * 1024  # 8 MiB, safely below Cloud Run limits
 
 def _resolve_tutorial_path(lang: str) -> Path:
     """Return the filesystem path for the requested tutorial video."""
@@ -164,7 +164,16 @@ def _build_range_response(video_path: Path, range_header: str):
         return response
 
     end_group = match.group(2)
-    end = int(end_group) if end_group else file_size - 1
+    if end_group:
+        end = int(end_group)
+    else:
+        end = start + _MAX_RANGE_CHUNK_SIZE - 1
+
+    end = min(end, file_size - 1)
+
+    if end - start + 1 > _MAX_RANGE_CHUNK_SIZE:
+        end = start + _MAX_RANGE_CHUNK_SIZE - 1
+
     end = min(end, file_size - 1)
     if start > end:
         return None
@@ -197,6 +206,12 @@ def _build_full_response(video_path: Path):
     """Return a streaming response for the entire video file."""
 
     file_size = video_path.stat().st_size
+    if file_size > _MAX_RANGE_CHUNK_SIZE:
+        synthetic_range = f"bytes=0-{_MAX_RANGE_CHUNK_SIZE - 1}"
+        limited_response = _build_range_response(video_path, synthetic_range)
+        if limited_response is not None:
+            return limited_response
+
     chunk_size = 8192
 
     def generate():
